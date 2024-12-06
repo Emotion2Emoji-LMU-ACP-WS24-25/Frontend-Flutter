@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 class MainPage extends StatelessWidget {
   final List<Map<String, String>> posts = [
     {'id': '1', 'user': 'Alice', 'imgSrc': 'assets/br1.jpg', 'time': 'Just now'},
-    {'id': '2', 'user': 'Bob', 'imgSrc': 'assets/br2.jpg', 'time': '1 hour ago'},
-    {'id': '3', 'user': 'Jason', 'imgSrc': 'assets/br3.jpg', 'time': '2 hours ago'},
+    {'id': '2', 'user': 'Jason', 'imgSrc': 'assets/br2.jpg', 'time': '12 min ago'},
+    {'id': '3', 'user': 'Luke', 'imgSrc': 'assets/br3.jpg', 'time': '30 min  ago'},
+    {'id': '4', 'user': 'Bob', 'imgSrc': 'assets/br4.jpg', 'time': '1 hour ago'},
+    {'id': '5', 'user': 'Jessie', 'imgSrc': 'assets/br5.jpg', 'time': '2 hours ago'},
+
   ];
 
   MainPage({super.key});

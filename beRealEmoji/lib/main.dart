@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginPage(),
         '/main': (context) => MainPage(),
-        '/upload': (context) => const UploadPage(), 
+        '/upload': (context) => const UploadPage(), // UploadPage hinzugefügt
       },
     );
   }
