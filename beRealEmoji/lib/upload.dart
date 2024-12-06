@@ -10,7 +10,7 @@ class UploadPage extends StatefulWidget {
 }
 
 class _UploadPageState extends State<UploadPage> {
-  Uint8List? _frontImageBytes; // Speicher für hochgeladene Bilddaten
+  Uint8List? _frontImageBytes; 
   Uint8List? _rearImageBytes;
 
   final ImagePicker _picker = ImagePicker();
@@ -57,7 +57,6 @@ class _UploadPageState extends State<UploadPage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
               ),
               const SizedBox(height: 20),
-              // Front Image Upload Section
               Column(
                 children: [
                   ElevatedButton(
@@ -79,7 +78,6 @@ class _UploadPageState extends State<UploadPage> {
                 ],
               ),
               const SizedBox(height: 40),
-              // Rear Image Upload Section
               Column(
                 children: [
                   ElevatedButton(

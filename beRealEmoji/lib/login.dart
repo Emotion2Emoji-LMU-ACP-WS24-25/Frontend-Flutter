@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'feed.dart'; // Import der Feed-Seite
+import 'feed.dart'; 
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,17 +18,15 @@ class _LoginPageState extends State<LoginPage> {
   };
 
   void handleSubmit() {
-    final username = _usernameController.text.trim(); // Entfernt Leerzeichen
-    final password = _passwordController.text.trim(); // Entfernt Leerzeichen
+    final username = _usernameController.text.trim(); 
+    final password = _passwordController.text.trim(); 
 
     if (username == defaultUser['username'] && password == defaultUser['password']) {
-      // Bei erfolgreichem Login zur MainPage navigieren
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => MainPage()),
       );
     } else {
-      // Login fehlgeschlagen
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
