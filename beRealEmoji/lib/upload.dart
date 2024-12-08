@@ -15,14 +15,22 @@ class _UploadPageState extends State<UploadPage> {
 
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickFrontImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() async {
-        _frontImageBytes = await pickedFile.readAsBytes();
-      });
-    }
+Future<void> _pickFrontImage() async {
+  // Bild aus der Galerie auswählen (asynchron)
+  final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+  // Wenn ein Bild ausgewählt wurde, führe die asynchrone Operation (readAsBytes) außerhalb von setState aus
+  if (pickedFile != null) {
+    // Zuerst die asynchrone Arbeit ausführen
+    final frontImageBytes = await pickedFile.readAsBytes();
+
+    // Dann den Zustand aktualisieren, indem du setState aufrufst
+    setState(() {
+      _frontImageBytes = frontImageBytes;  // Hier wird nur der Zustand gesetzt
+    });
   }
+}
+
 
   Future<void> _pickRearImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
