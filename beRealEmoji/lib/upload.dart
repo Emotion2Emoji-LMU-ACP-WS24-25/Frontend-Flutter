@@ -41,14 +41,31 @@ Future<void> _pickFrontImage() async {
 }
 
 
-  Future<void> _pickRearImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() async {
-        _rearImageBytes = await pickedFile.readAsBytes();
-      });
-    }
+//  Future<void> _pickRearImage() async {
+//    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+//    if (pickedFile != null) {
+//      setState(() async {
+//        _rearImageBytes = await pickedFile.readAsBytes();
+//      });
+//    }
+//  }
+
+Future<void> _pickRearImage() async {
+  // Zuerst die asynchrone Arbeit ausführen (Bild auswählen)
+  final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+  // Wenn ein Bild ausgewählt wurde, führe die asynchrone Operation readAsBytes() aus
+  if (pickedFile != null) {
+    // Asynchrone Arbeit ausführen und den Wert in eine Variable speichern
+    final rearImageBytes = await pickedFile.readAsBytes();
+
+    // Den Zustand mit setState() aktualisieren
+    setState(() {
+      _rearImageBytes = rearImageBytes; // Den Zustand mit den geladenen Bildbytes aktualisieren
+    });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
