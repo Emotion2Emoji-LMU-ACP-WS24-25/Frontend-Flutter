@@ -121,7 +121,28 @@ Future<void> _pickRearImage() async {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
                     ),
-                    child: const Text('Upload Rear Image'),
+                    child: const Text('Upload Back/Rear Image'),
+                  ),
+                  const SizedBox(height: 16),
+                  if (_rearImageBytes != null)
+                    Image.memory(
+                      _rearImageBytes!,
+                      height: 200,
+                      fit: BoxFit.cover,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 40),
+              Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: _pickRearImage,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                    ),
+                    child: const Text('Created BeReal Image'),
                   ),
                   const SizedBox(height: 16),
                   if (_rearImageBytes != null)
