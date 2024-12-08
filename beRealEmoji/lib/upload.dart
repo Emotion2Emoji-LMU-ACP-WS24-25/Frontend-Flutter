@@ -121,7 +121,7 @@ Future<void> _pickRearImage() async {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
                     ),
-                    child: const Text('Upload Back/Rear Image'),
+                    child: const Text('Upload Rear Image'),
                   ),
                   const SizedBox(height: 16),
                   if (_rearImageBytes != null)
