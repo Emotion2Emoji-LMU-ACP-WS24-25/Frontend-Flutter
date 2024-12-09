@@ -1,5 +1,7 @@
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Für rootBundle
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -10,6 +12,46 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final List<Map<String, dynamic>> posts = [];
+
+  // Funktion zum Laden der Bilddateien aus den Assets
+  Future<Uint8List> _loadAssetImage(String path) async {
+    final byteData = await rootBundle.load('assets/$path');
+    return byteData.buffer.asUint8List();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Standard-Posts beim Start hinzufügen
+    _loadDefaultPosts();
+  }
+
+  // Zufällige Benutzernamen erstellen
+  String _generateRandomUsername() {
+    const names = [
+      'Alice', 'Bob', 'Charlie', 'David', 'Eve',
+      'Frank', 'Grace', 'Hannah', 'Ivy', 'Jack'
+    ];
+    final random = Random();
+    return names[random.nextInt(names.length)];
+  }
+
+  // Zufällige Zeitstempel generieren
+  String _generateRandomTime() {
+    final random = Random();
+    final now = DateTime.now();
+    final randomMinutes = random.nextInt(60); // Zufällige Minuten
+    final randomHours = random.nextInt(24);  // Zufällige Stunden
+    final randomDays = random.nextInt(7);    // Zufällige Tage
+
+    final randomTime = now.subtract(Duration(
+      days: randomDays,
+      hours: randomHours,
+      minutes: randomMinutes,
+    ));
+
+    return _getTimeAgo(randomTime);
+  }
 
   String _getTimeAgo(DateTime postTime) {
     final now = DateTime.now();
@@ -26,6 +68,28 @@ class _MainPageState extends State<MainPage> {
     } else {
       return '${difference.inDays} days ago';
     }
+  }
+
+  Future<void> _loadDefaultPosts() async {
+    final rearImages = [
+      await _loadAssetImage('br1.jpg'),
+      await _loadAssetImage('br2.jpg'),
+      await _loadAssetImage('br3.jpg'),
+      await _loadAssetImage('br4.jpg'),
+      await _loadAssetImage('br5.jpg'),
+    ];
+
+    setState(() {
+      for (int i = 0; i < rearImages.length; i++) {
+        posts.add({
+          'id': DateTime.now().toString(),
+          'user': _generateRandomUsername(),
+          'frontImage': null, 
+          'rearImage': rearImages[i],
+          'time': _generateRandomTime(),
+        });
+      }
+    });
   }
 
   void _addNewPost(Map<String, dynamic> newPost) {
@@ -100,25 +164,26 @@ class _MainPageState extends State<MainPage> {
                                 height: 350,
                               ),
                             ),
-                            Positioned(
-                              top: 16,
-                              left: 16,
-                              child: Container(
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.white, width: 2),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.memory(
-                                    post['frontImage'],
-                                    fit: BoxFit.cover,
+                            if (post['frontImage'] != null)
+                              Positioned(
+                                top: 16,
+                                left: 16,
+                                child: Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.black, width: 2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.memory(
+                                      post['frontImage'],
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
                             Positioned(
                               bottom: 16,
                               left: 16,
