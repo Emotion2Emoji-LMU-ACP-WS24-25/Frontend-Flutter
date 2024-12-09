@@ -11,7 +11,6 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final List<Map<String, dynamic>> posts = [];
 
-  // Funktion, um den Zeitstempel zu berechnen
   String _getTimeAgo(DateTime postTime) {
     final now = DateTime.now();
     final difference = now.difference(postTime);
