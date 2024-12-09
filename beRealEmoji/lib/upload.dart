@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
+import 'package:mime/mime.dart';
 
 
 class UploadPage extends StatefulWidget {
@@ -54,42 +55,54 @@ class _UploadPageState extends State<UploadPage> {
     }
   }
 
-   // Funktion zum Hochladen der Bilder an den express server
+   // Funktion zum Hochladen der Bilder an server
   Future<void> _uploadImages() async {
     if (_frontImageBytes != null && _rearImageBytes != null) {
+      // Erstellen eines Multipart-FormData Requests
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://localhost:3000/daily_upload'), // URL des Express Servers
+      );
+      
+      // Füge die Bilder zum Request hinzu
+      var frontImage = http.MultipartFile.fromBytes(
+        'front', // Name des Form-Feldes im Express-Server
+        _frontImageBytes!,
+        contentType: MediaType('image', 'jpeg'), // MIME-Typ für Bilder
+        filename: 'front_image.jpg',
+      );
+
+      var rearImage = http.MultipartFile.fromBytes(
+        'back', // Name des Form-Feldes im Express-Server
+        _rearImageBytes!,
+        contentType: MediaType('image', 'jpeg'), // MIME-Typ für Bilder
+        filename: 'rear_image.jpg',
+      );
+
+      // Füge das Frontbild und Rückbild zum Request hinzu
+      request.files.add(frontImage);
+      request.files.add(rearImage);
+
+      // Füge zusätzliche Formulardaten hinzu
+      request.fields['user'] = 'someUsername'; // Benutzername als Form-Feld
+
       try {
-        // Erstelle Multipart-Anfrage
-        var request = http.MultipartRequest('POST', Uri.parse('http://localhost:3000/daily_upload'));
-
-        // Füge das Bild und den Benutzernamen als Formulardaten hinzu
-        request.fields['user'] = 'user123';  // Beispielbenutzername, du kannst ihn nach Bedarf anpassen
-
-        request.files.add(http.MultipartFile.fromBytes(
-          'front', 
-          _frontImageBytes!, 
-          filename: 'front.jpg', 
-          contentType: MediaType('image', 'jpeg'),
-        ));
-
-        request.files.add(http.MultipartFile.fromBytes(
-          'back', 
-          _rearImageBytes!, 
-          filename: 'back.jpg', 
-          contentType: MediaType('image', 'jpeg'),
-        ));
-
-        // Sende die Anfrage und empfange die Antwort
+        // Sende die Anfrage
         var response = await request.send();
 
+        // Antwort verarbeiten
         if (response.statusCode == 200) {
+          print('Bilder erfolgreich hochgeladen!');
           final responseData = await response.stream.bytesToString();
-          final jsonResponse = jsonDecode(responseData);
-          print('Bilder erfolgreich hochgeladen: ${jsonResponse['message']}');
+          print('Antwort: $responseData');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erfolgreich hochgeladen')));
         } else {
           print('Fehler beim Hochladen der Bilder: ${response.statusCode}');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fehler beim Hochladen')));
         }
       } catch (e) {
-        print('Fehler beim Hochladen der Bilder: $e');
+        print('Fehler: $e');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fehler beim Hochladen')));
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -98,6 +111,7 @@ class _UploadPageState extends State<UploadPage> {
     }
   }
 
+   
 
   @override
   Widget build(BuildContext context) {
