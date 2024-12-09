@@ -4,10 +4,9 @@ class MainPage extends StatelessWidget {
   final List<Map<String, String>> posts = [
     {'id': '1', 'user': 'Alice', 'imgSrc': 'assets/br1.jpg', 'time': 'Just now'},
     {'id': '2', 'user': 'Jason', 'imgSrc': 'assets/br2.jpg', 'time': '12 min ago'},
-    {'id': '3', 'user': 'Luke', 'imgSrc': 'assets/br3.jpg', 'time': '30 min  ago'},
+    {'id': '3', 'user': 'Luke', 'imgSrc': 'assets/br3.jpg', 'time': '30 min ago'},
     {'id': '4', 'user': 'Bob', 'imgSrc': 'assets/br4.jpg', 'time': '1 hour ago'},
     {'id': '5', 'user': 'Jessie', 'imgSrc': 'assets/br5.jpg', 'time': '2 hours ago'},
-
   ];
 
   MainPage({super.key});
@@ -28,21 +27,6 @@ class MainPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
         child: Column(
           children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/upload');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              child: const Text('Upload a BeReal'),
-            ),
-            const SizedBox(height: 24.0),
             const Text(
               'Recent Posts',
               style: TextStyle(
@@ -84,7 +68,7 @@ class MainPage extends StatelessWidget {
                                 post['imgSrc']!,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                height: 500, 
+                                height: 500,
                               ),
                             ),
                             Padding(
@@ -120,6 +104,15 @@ class MainPage extends StatelessWidget {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.pushNamed(context, '/upload');
+        },
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        label: const Text('Upload BeReal'),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, 
     );
   }
 }
