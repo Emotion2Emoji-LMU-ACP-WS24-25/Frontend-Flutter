@@ -1,6 +1,11 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+//neue importe für anbindung an express server
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'dart:convert';
+
 
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
@@ -48,6 +53,51 @@ class _UploadPageState extends State<UploadPage> {
       );
     }
   }
+
+   // Funktion zum Hochladen der Bilder an den express server
+  Future<void> _uploadImages() async {
+    if (_frontImageBytes != null && _rearImageBytes != null) {
+      try {
+        // Erstelle Multipart-Anfrage
+        var request = http.MultipartRequest('POST', Uri.parse('http://localhost:3000/daily_upload'));
+
+        // Füge das Bild und den Benutzernamen als Formulardaten hinzu
+        request.fields['user'] = 'user123';  // Beispielbenutzername, du kannst ihn nach Bedarf anpassen
+
+        request.files.add(http.MultipartFile.fromBytes(
+          'front', 
+          _frontImageBytes!, 
+          filename: 'front.jpg', 
+          contentType: MediaType('image', 'jpeg'),
+        ));
+
+        request.files.add(http.MultipartFile.fromBytes(
+          'back', 
+          _rearImageBytes!, 
+          filename: 'back.jpg', 
+          contentType: MediaType('image', 'jpeg'),
+        ));
+
+        // Sende die Anfrage und empfange die Antwort
+        var response = await request.send();
+
+        if (response.statusCode == 200) {
+          final responseData = await response.stream.bytesToString();
+          final jsonResponse = jsonDecode(responseData);
+          print('Bilder erfolgreich hochgeladen: ${jsonResponse['message']}');
+        } else {
+          print('Fehler beim Hochladen der Bilder: ${response.statusCode}');
+        }
+      } catch (e) {
+        print('Fehler beim Hochladen der Bilder: $e');
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please upload both front and rear images')),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
