@@ -1,15 +1,46 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
-class MainPage extends StatelessWidget {
-  final List<Map<String, String>> posts = [
-    {'id': '1', 'user': 'Alice', 'imgSrc': 'assets/br1.jpg', 'time': 'Just now'},
-    {'id': '2', 'user': 'Jason', 'imgSrc': 'assets/br2.jpg', 'time': '12 min ago'},
-    {'id': '3', 'user': 'Luke', 'imgSrc': 'assets/br3.jpg', 'time': '30 min ago'},
-    {'id': '4', 'user': 'Bob', 'imgSrc': 'assets/br4.jpg', 'time': '1 hour ago'},
-    {'id': '5', 'user': 'Jessie', 'imgSrc': 'assets/br5.jpg', 'time': '2 hours ago'},
-  ];
+class MainPage extends StatefulWidget {
+  const MainPage({super.key});
 
-  MainPage({super.key});
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  final List<Map<String, dynamic>> posts = [];
+
+  // Funktion, um den Zeitstempel zu berechnen
+  String _getTimeAgo(DateTime postTime) {
+    final now = DateTime.now();
+    final difference = now.difference(postTime);
+
+    if (difference.inSeconds < 60) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} min ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else {
+      return '${difference.inDays} days ago';
+    }
+  }
+
+  void _addNewPost(Map<String, dynamic> newPost) {
+    final postTime = DateTime.now();
+    setState(() {
+      posts.insert(0, {
+        'id': postTime.toString(),
+        'user': 'Me',
+        'frontImage': newPost['frontImage'],
+        'rearImage': newPost['rearImage'],
+        'time': _getTimeAgo(postTime), 
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +77,7 @@ class MainPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Center(
                       child: Container(
-                        width: 300, // Optional: Beschränke die Breite des Containers
+                        width: 300,
                         decoration: BoxDecoration(
                           color: Colors.grey[850],
                           borderRadius: BorderRadius.circular(12.0),
@@ -58,33 +89,52 @@ class MainPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: Column(
+                        child: Stack(
+                          alignment: Alignment.topLeft,
                           children: [
                             ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(12.0),
-                              ),
-                              child: Image.asset(
-                                post['imgSrc']!,
+                              borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+                              child: Image.memory(
+                                post['rearImage'],
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                height: 500,
+                                height: 350,
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
+                            Positioned(
+                              top: 16,
+                              left: 16,
+                              child: Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.memory(
+                                    post['frontImage'],
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 16,
+                              left: 16,
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    post['user']!,
+                                    post['user'],
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 4.0),
                                   Text(
-                                    post['time']!,
+                                    post['time'],
                                     style: TextStyle(
                                       color: Colors.grey[400],
                                       fontSize: 12.0,
@@ -105,14 +155,17 @@ class MainPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, '/upload');
+        onPressed: () async {
+          final result = await Navigator.pushNamed(context, '/upload');
+          if (result != null && result is Map<String, dynamic> && mounted) {
+            _addNewPost(result);
+          }
         },
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         label: const Text('Upload BeReal'),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, 
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

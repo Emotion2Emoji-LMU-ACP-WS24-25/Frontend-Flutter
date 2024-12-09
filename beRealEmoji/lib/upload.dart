@@ -6,66 +6,48 @@ class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
 
   @override
-  _UploadPageState createState() => _UploadPageState();
+  State<UploadPage> createState() => _UploadPageState();
 }
 
 class _UploadPageState extends State<UploadPage> {
-  Uint8List? _frontImageBytes; 
+  Uint8List? _frontImageBytes;
   Uint8List? _rearImageBytes;
 
   final ImagePicker _picker = ImagePicker();
 
-//  Future<void> _pickFrontImage() async {
-//    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-//    if (pickedFile != null) {
-//      setState(() async {
-//        _frontImageBytes = await pickedFile.readAsBytes();
-//      });
-//    }
-//  }
-
-Future<void> _pickFrontImage() async {
-  // Bild aus der Galerie auswählen (asynchron)
-  final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-
-  // Wenn ein Bild ausgewählt wurde, führe die asynchrone Operation (readAsBytes) außerhalb von setState aus
-  if (pickedFile != null) {
-    // Zuerst die asynchrone Arbeit ausführen
-    final frontImageBytes = await pickedFile.readAsBytes();
-
-    // Dann den Zustand aktualisieren, indem du setState aufrufst
-    setState(() {
-      _frontImageBytes = frontImageBytes;  // Hier wird nur der Zustand gesetzt
-    });
+  Future<void> _pickFrontImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final frontImageBytes = await pickedFile.readAsBytes();
+      setState(() {
+        _frontImageBytes = frontImageBytes;
+      });
+    }
   }
-}
 
-
-//  Future<void> _pickRearImage() async {
-//    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-//    if (pickedFile != null) {
-//      setState(() async {
-//        _rearImageBytes = await pickedFile.readAsBytes();
-//      });
-//    }
-//  }
-
-Future<void> _pickRearImage() async {
-  // Zuerst die asynchrone Arbeit ausführen (Bild auswählen)
-  final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-
-  // Wenn ein Bild ausgewählt wurde, führe die asynchrone Operation readAsBytes() aus
-  if (pickedFile != null) {
-    // Asynchrone Arbeit ausführen und den Wert in eine Variable speichern
-    final rearImageBytes = await pickedFile.readAsBytes();
-
-    // Den Zustand mit setState() aktualisieren
-    setState(() {
-      _rearImageBytes = rearImageBytes; // Den Zustand mit den geladenen Bildbytes aktualisieren
-    });
+  Future<void> _pickRearImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final rearImageBytes = await pickedFile.readAsBytes();
+      setState(() {
+        _rearImageBytes = rearImageBytes;
+      });
+    }
   }
-}
 
+  void _postBeReal() {
+    if (_frontImageBytes != null && _rearImageBytes != null) {
+      final newPost = {
+        'frontImage': _frontImageBytes,
+        'rearImage': _rearImageBytes,
+      };
+      Navigator.pop(context, newPost); 
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please upload both front and rear images')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,103 +61,75 @@ Future<void> _pickRearImage() async {
         centerTitle: true,
       ),
       backgroundColor: Colors.black,
-      body: SingleChildScrollView(
-        child: Padding(
+      body: Center(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
-                'Upload Front and Rear Images',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              const SizedBox(height: 20),
-              Column(
+              const SizedBox(height: 24),
+              Stack(
+                alignment: Alignment.topLeft,
                 children: [
-                  ElevatedButton(
-                    onPressed: _pickFrontImage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                    ),
-                    child: const Text('Upload Front Image'),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_frontImageBytes != null)
-                    Image.memory(
-                      _frontImageBytes!,
-                      height: 200,
-                      fit: BoxFit.cover,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 40),
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: _pickRearImage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                    ),
-                    child: const Text('Upload Rear Image'),
-                  ),
-                  const SizedBox(height: 16),
                   if (_rearImageBytes != null)
                     Image.memory(
                       _rearImageBytes!,
-                      height: 200,
+                      height: 350, 
+                      width: 250,  
                       fit: BoxFit.cover,
+                    )
+                  else
+                    Container(
+                      height: 350,  
+                      width: 250,   
+                      color: Colors.grey[800],
+                      child: const Center(
+                        child: Text(
+                          'Placeholder',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                  if (_frontImageBytes != null)
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white, width: 2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.memory(
+                            _frontImageBytes!,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                     ),
                 ],
               ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _postBeReal,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+                ),
+                child: const Text('Post BeReal'),
+              ),
               const SizedBox(height: 40),
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: _pickRearImage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                    ),
-                    child: const Text('Created BeReal Image'),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_rearImageBytes != null)
-                    Stack(
-                      children: [
-                        Image.memory(
-                          _rearImageBytes!,
-                          height: 200,
-                          fit: BoxFit.cover,
-                        ),
-                        if (_frontImageBytes != null)
-                          Positioned(
-                            top: 10,
-                            left: 10,
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.white, width: 2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.memory(
-                                  _frontImageBytes!,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                ],
+              ElevatedButton(
+                onPressed: _pickFrontImage,
+                child: const Text('Upload Front Image'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _pickRearImage,
+                child: const Text('Upload Rear Image'),
               ),
             ],
           ),
