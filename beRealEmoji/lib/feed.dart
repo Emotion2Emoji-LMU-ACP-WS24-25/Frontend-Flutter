@@ -29,8 +29,16 @@ class _MainPageState extends State<MainPage> {
   // Zufällige Benutzernamen erstellen
   String _generateRandomUsername() {
     const names = [
-      'Alice', 'Bob', 'Charlie', 'David', 'Eve',
-      'Frank', 'Grace', 'Hannah', 'Ivy', 'Jack'
+      'Alice',
+      'Bob',
+      'Charlie',
+      'David',
+      'Eve',
+      'Frank',
+      'Grace',
+      'Hannah',
+      'Ivy',
+      'Jack'
     ];
     final random = Random();
     return names[random.nextInt(names.length)];
@@ -41,8 +49,8 @@ class _MainPageState extends State<MainPage> {
     final random = Random();
     final now = DateTime.now();
     final randomMinutes = random.nextInt(60); // Zufällige Minuten
-    final randomHours = random.nextInt(24);  // Zufällige Stunden
-    final randomDays = random.nextInt(7);    // Zufällige Tage
+    final randomHours = random.nextInt(24); // Zufällige Stunden
+    final randomDays = random.nextInt(7); // Zufällige Tage
 
     final randomTime = now.subtract(Duration(
       days: randomDays,
@@ -84,7 +92,7 @@ class _MainPageState extends State<MainPage> {
         posts.add({
           'id': DateTime.now().toString(),
           'user': _generateRandomUsername(),
-          'frontImage': null, 
+          'frontImage': null,
           'rearImage': rearImages[i],
           'time': _generateRandomTime(),
         });
@@ -100,7 +108,7 @@ class _MainPageState extends State<MainPage> {
         'user': 'Me',
         'frontImage': newPost['frontImage'],
         'rearImage': newPost['rearImage'],
-        'time': _getTimeAgo(postTime), 
+        'time': _getTimeAgo(postTime),
       });
     });
   }
@@ -140,7 +148,7 @@ class _MainPageState extends State<MainPage> {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Center(
                       child: Container(
-                        width: 300,
+                        width: 350,
                         decoration: BoxDecoration(
                           color: Colors.grey[850],
                           borderRadius: BorderRadius.circular(12.0),
@@ -156,12 +164,13 @@ class _MainPageState extends State<MainPage> {
                           alignment: Alignment.topLeft,
                           children: [
                             ClipRRect(
-                              borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12.0)),
                               child: Image.memory(
                                 post['rearImage'],
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                height: 350,
+                                height: 466,
                               ),
                             ),
                             if (post['frontImage'] != null)
@@ -170,9 +179,10 @@ class _MainPageState extends State<MainPage> {
                                 left: 16,
                                 child: Container(
                                   width: 100,
-                                  height: 100,
+                                  height: 130,
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.black, width: 2),
+                                    border: Border.all(
+                                        color: Colors.black, width: 2),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: ClipRRect(
