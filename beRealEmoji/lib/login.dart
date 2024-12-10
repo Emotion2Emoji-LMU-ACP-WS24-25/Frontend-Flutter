@@ -13,8 +13,8 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   final Map<String, String> defaultUser = {
-    'username': '',
-    'password': '',
+    'username': 'demo',
+    'password': '1234',
   };
 
   void handleSubmit() {
