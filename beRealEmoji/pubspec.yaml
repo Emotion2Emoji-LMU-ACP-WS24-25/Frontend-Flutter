@@ -12,6 +12,7 @@ dependencies:
   camera: ^0.11.0+2
   http: ^1.2.2
   image_picker: ^1.1.2
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -27,3 +28,4 @@ flutter:
     - assets/br4.jpg
     - assets/br5.jpg
     - assets/BeReal_logo.png
+    - .env

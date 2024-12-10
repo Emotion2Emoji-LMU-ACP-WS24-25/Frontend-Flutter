@@ -104,7 +104,7 @@ class _MainPageState extends State<MainPage> {
     final postTime = DateTime.now();
     setState(() {
       posts.insert(0, {
-        'id': postTime.toString(),
+        'id': newPost['id'],
         'user': 'Me',
         'frontImage': newPost['frontImage'],
         'rearImage': newPost['rearImage'],

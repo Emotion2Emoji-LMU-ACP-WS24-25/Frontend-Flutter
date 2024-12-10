@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 //neue importe für anbindung an express server
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
 import 'package:mime/mime.dart';
-
 
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
@@ -22,7 +22,8 @@ class _UploadPageState extends State<UploadPage> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickFrontImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final frontImageBytes = await pickedFile.readAsBytes();
       setState(() {
@@ -32,7 +33,8 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   Future<void> _pickRearImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final rearImageBytes = await pickedFile.readAsBytes();
       setState(() {
@@ -41,29 +43,36 @@ class _UploadPageState extends State<UploadPage> {
     }
   }
 
-  void _postBeReal() {
+  void _postBeReal() async {
     if (_frontImageBytes != null && _rearImageBytes != null) {
+      var job_id = await _uploadImages();
       final newPost = {
         'frontImage': _frontImageBytes,
         'rearImage': _rearImageBytes,
+        'id': job_id
       };
-      Navigator.pop(context, newPost); 
+      Navigator.pop(context, newPost);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please upload both front and rear images')),
+        const SnackBar(
+            content: Text('Please upload both front and rear images')),
       );
     }
   }
 
-   // Funktion zum Hochladen der Bilder an server
-  Future<void> _uploadImages() async {
+  // Funktion zum Hochladen der Bilder an server
+  Future<String?> _uploadImages() async {
     if (_frontImageBytes != null && _rearImageBytes != null) {
       // Erstellen eines Multipart-FormData Requests
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://localhost:3000/daily_upload'), // URL des Express Servers
+        Uri.parse(
+            dotenv.get('BACKEND_URL', fallback: "")), // URL des Express Servers
       );
-      
+      request.headers.addAll({
+        'ngrok-skip-browser-warning': 'Servus',
+      });
+
       // Füge die Bilder zum Request hinzu
       var frontImage = http.MultipartFile.fromBytes(
         'front', // Name des Form-Feldes im Express-Server
@@ -94,24 +103,28 @@ class _UploadPageState extends State<UploadPage> {
         if (response.statusCode == 200) {
           print('Bilder erfolgreich hochgeladen!');
           final responseData = await response.stream.bytesToString();
-          print('Antwort: $responseData');
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erfolgreich hochgeladen')));
+          final job_id = jsonDecode(responseData)['id'];
+          print('Job ID: $job_id');
+          return job_id;
         } else {
           print('Fehler beim Hochladen der Bilder: ${response.statusCode}');
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fehler beim Hochladen')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Fehler beim Hochladen')));
+          return null;
         }
       } catch (e) {
         print('Fehler: $e');
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fehler beim Hochladen')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Fehler beim Hochladen')));
+        return null;
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please upload both front and rear images')),
+        const SnackBar(
+            content: Text('Please upload both front and rear images')),
       );
     }
   }
-
-   
 
   @override
   Widget build(BuildContext context) {
@@ -137,14 +150,14 @@ class _UploadPageState extends State<UploadPage> {
                   if (_rearImageBytes != null)
                     Image.memory(
                       _rearImageBytes!,
-                      height: 350, 
-                      width: 250,  
+                      height: 350,
+                      width: 250,
                       fit: BoxFit.cover,
                     )
                   else
                     Container(
-                      height: 350,  
-                      width: 250,   
+                      height: 350,
+                      width: 250,
                       color: Colors.grey[800],
                       child: const Center(
                         child: Text(
@@ -181,7 +194,8 @@ class _UploadPageState extends State<UploadPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 32.0),
                 ),
                 child: const Text('Post BeReal'),
               ),
