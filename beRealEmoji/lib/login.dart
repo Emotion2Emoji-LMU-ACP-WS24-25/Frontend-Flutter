@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'feed.dart'; 
+import 'feed.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,15 +13,16 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   final Map<String, String> defaultUser = {
-    'username': 'affectivecomputing',
-    'password': 'password123',
+    'username': '',
+    'password': '',
   };
 
   void handleSubmit() {
-    final username = _usernameController.text.trim(); 
-    final password = _passwordController.text.trim(); 
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
 
-    if (username == defaultUser['username'] && password == defaultUser['password']) {
+    if (username == defaultUser['username'] &&
+        password == defaultUser['password']) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => MainPage()),
@@ -98,7 +99,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
-                        width: 340, 
+                        width: 340,
                         child: TextField(
                           controller: _passwordController,
                           obscureText: true,
