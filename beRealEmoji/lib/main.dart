@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'login.dart';
-import 'feed.dart'; 
-import 'upload.dart'; 
+import 'feed.dart';
+import 'upload.dart';
 
-void main() {
+Future main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -18,7 +20,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginPage(),
         '/main': (context) => MainPage(),
-        '/upload': (context) => const UploadPage(), 
+        '/upload': (context) => const UploadPage(),
       },
     );
   }
