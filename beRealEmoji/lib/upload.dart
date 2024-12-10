@@ -49,6 +49,7 @@ class _UploadPageState extends State<UploadPage> {
       final newPost = {
         'frontImage': _frontImageBytes,
         'rearImage': _rearImageBytes,
+        'user': 'Demo@LMU',
         'id': job_id
       };
       Navigator.pop(context, newPost);
@@ -67,7 +68,7 @@ class _UploadPageState extends State<UploadPage> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-            dotenv.get('BACKEND_URL', fallback: "")), // URL des Express Servers
+            "${dotenv.get('BACKEND_URL', fallback: "")}/daily_upload"), // URL des Express Servers
       );
       request.headers.addAll({
         'ngrok-skip-browser-warning': 'Servus',
@@ -93,7 +94,7 @@ class _UploadPageState extends State<UploadPage> {
       request.files.add(rearImage);
 
       // Füge zusätzliche Formulardaten hinzu
-      request.fields['user'] = 'someUsername'; // Benutzername als Form-Feld
+      request.fields['user'] = 'Demo@LMU'; // Benutzername als Form-Feld
 
       try {
         // Sende die Anfrage
@@ -124,6 +125,7 @@ class _UploadPageState extends State<UploadPage> {
             content: Text('Please upload both front and rear images')),
       );
     }
+    return null;
   }
 
   @override
