@@ -23,8 +23,6 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<Uint8List?> _fetchImage(String postId, String user) async {
-    print("Load!!!!!!!!!");
-
     final url = Uri.parse("${dotenv.get('BACKEND_URL', fallback: "")}/download")
         .replace(
       queryParameters: {
@@ -34,12 +32,16 @@ class _MainPageState extends State<MainPage> {
     );
 
     int attempts = 0;
-    const maxAttempts = 5;
+    const maxAttempts = 8;
     const delayDuration = Duration(seconds: 15);
 
     while (attempts < maxAttempts) {
       try {
         final response = await http.get(url);
+
+        if (response.statusCode == 422) {
+          return await _getFallbackImage();
+        }
 
         if (response.statusCode == 200) {
           return response.bodyBytes;
@@ -69,7 +71,7 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     // Standard-Posts beim Start hinzufügen
-    //_loadDefaultPosts();
+    _loadDefaultPosts();
   }
 
   // Zufällige Benutzernamen erstellen
@@ -126,19 +128,27 @@ class _MainPageState extends State<MainPage> {
 
   Future<void> _loadDefaultPosts() async {
     final rearImages = [
-      await _loadAssetImage('br1.jpg'),
-      await _loadAssetImage('br2.jpg'),
-      await _loadAssetImage('br3.jpg'),
-      await _loadAssetImage('br4.jpg'),
-      await _loadAssetImage('br5.jpg'),
+      await _loadAssetImage('b0.jpg'),
+      await _loadAssetImage('b1.jpg'),
+      await _loadAssetImage('b2.jpg'),
+    ];
+    final frontImages = [
+      await _loadAssetImage('f0.jpg'),
+      await _loadAssetImage('f1.jpg'),
+      await _loadAssetImage('f2.jpg'),
+    ];
+    final usernames = [
+      'BayernFan1900',
+      'Maggus',
+      'Emanuel',
     ];
 
     setState(() {
       for (int i = 0; i < rearImages.length; i++) {
         posts.add({
           'id': DateTime.now().toString(),
-          'user': _generateRandomUsername(),
-          'frontImage': null,
+          'user': usernames[i],
+          'frontImage': frontImages[i],
           'rearImage': rearImages[i],
           'time': _generateRandomTime(),
         });
