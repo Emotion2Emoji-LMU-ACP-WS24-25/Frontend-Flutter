@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Für rootBundle
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -19,11 +22,54 @@ class _MainPageState extends State<MainPage> {
     return byteData.buffer.asUint8List();
   }
 
+  Future<Uint8List?> _fetchImage(String postId, String user) async {
+    print("Load!!!!!!!!!");
+
+    final url = Uri.parse("${dotenv.get('BACKEND_URL', fallback: "")}/download")
+        .replace(
+      queryParameters: {
+        'id': postId,
+        'user': user,
+      },
+    );
+
+    int attempts = 0;
+    const maxAttempts = 5;
+    const delayDuration = Duration(seconds: 15);
+
+    while (attempts < maxAttempts) {
+      try {
+        final response = await http.get(url);
+
+        if (response.statusCode == 200) {
+          return response.bodyBytes;
+        } else {
+          print('Attempt ${attempts + 1}: ${response.statusCode}');
+        }
+      } catch (e) {
+        print('Network error on attempt ${attempts + 1}: $e');
+        return await _getFallbackImage();
+      }
+
+      attempts++;
+      if (attempts < maxAttempts) {
+        await Future.delayed(delayDuration);
+      }
+    }
+    print(
+        'Failed to download image after $attempts attempts. Returning fallback image.');
+    return await _getFallbackImage();
+  }
+
+  Future<Uint8List> _getFallbackImage() async {
+    return (await rootBundle.load('assets/maxmuster.jpg')).buffer.asUint8List();
+  }
+
   @override
   void initState() {
     super.initState();
     // Standard-Posts beim Start hinzufügen
-    _loadDefaultPosts();
+    //_loadDefaultPosts();
   }
 
   // Zufällige Benutzernamen erstellen
@@ -100,17 +146,34 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  void _addNewPost(Map<String, dynamic> newPost) {
+  void _addNewPost(Map<String, dynamic> newPost) async {
     final postTime = DateTime.now();
     setState(() {
       posts.insert(0, {
         'id': newPost['id'],
-        'user': 'Me',
+        'user': newPost['user'],
         'frontImage': newPost['frontImage'],
         'rearImage': newPost['rearImage'],
         'time': _getTimeAgo(postTime),
       });
     });
+  }
+
+  void _showFullScreenImage(BuildContext context, Uint8List imageData) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(), // Close dialog on tap
+          child: Image.memory(
+            imageData,
+            fit: BoxFit.contain,
+            width: 400,
+            height: 400,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -126,31 +189,20 @@ class _MainPageState extends State<MainPage> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 0.0),
         child: Column(
           children: [
-            const Text(
-              'Recent Posts',
-              style: TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16.0),
             Expanded(
               child: ListView.builder(
                 itemCount: posts.length,
                 itemBuilder: (context, index) {
                   final post = posts[index];
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(vertical: 5.0),
                     child: Center(
                       child: Container(
-                        width: 350,
+                        width: 400,
                         decoration: BoxDecoration(
-                          color: Colors.grey[850],
                           borderRadius: BorderRadius.circular(12.0),
                           boxShadow: [
                             BoxShadow(
@@ -160,63 +212,134 @@ class _MainPageState extends State<MainPage> {
                             ),
                           ],
                         ),
-                        child: Stack(
-                          alignment: Alignment.topLeft,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(12.0)),
-                              child: Image.memory(
-                                post['rearImage'],
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: 466,
-                              ),
-                            ),
-                            if (post['frontImage'] != null)
-                              Positioned(
-                                top: 16,
-                                left: 16,
-                                child: Container(
-                                  width: 100,
-                                  height: 130,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.black, width: 2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.memory(
-                                      post['frontImage'],
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            Positioned(
-                              bottom: 16,
-                              left: 16,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            Padding(
+                              // Header bar with user info
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
                                 children: [
-                                  Text(
-                                    post['user'],
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  const CircleAvatar(
+                                    radius: 20.0,
+                                    backgroundImage: AssetImage(
+                                        'assets/maxmuster.jpg'), // User avatar from assets
                                   ),
-                                  Text(
-                                    post['time'],
-                                    style: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 12.0,
-                                    ),
+                                  const SizedBox(width: 12.0),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        post['user'],
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        post['time'],
+                                        style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 12.0,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(Icons.more_horiz,
+                                        color: Colors.white),
+                                    onPressed: () {},
                                   ),
                                 ],
                               ),
                             ),
+                            Stack(
+                              alignment: Alignment.topLeft,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(12.0)),
+                                  child: Image.memory(
+                                    post['rearImage'],
+                                    fit: BoxFit.cover,
+                                    width: 400,
+                                    height: 533,
+                                  ),
+                                ),
+                                if (post['frontImage'] != null)
+                                  Positioned(
+                                    top: 16,
+                                    left: 16,
+                                    child: Container(
+                                      width: 100,
+                                      height: 130,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: Colors.black, width: 2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.memory(
+                                          post['frontImage'],
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                Positioned(
+                                  top: 16,
+                                  right: 16,
+                                  child: GestureDetector(
+                                    onTap: () async {
+// Fetch the full-size image data
+                                      final fullImage = await _fetchImage(
+                                          post['id'], post['user']);
+                                      if (fullImage != null) {
+                                        _showFullScreenImage(
+                                            context, fullImage);
+                                      }
+                                    },
+                                    child: Container(
+                                      width: 100,
+                                      height: 100,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: Colors.black, width: 2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: FutureBuilder<Uint8List?>(
+                                          future: _fetchImage(
+                                              post['id'], post['user']),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                    ConnectionState.waiting ||
+                                                snapshot.data == null) {
+                                              return const Center(
+                                                  child:
+                                                      CircularProgressIndicator());
+                                            } else if (snapshot.hasData) {
+                                              return Image.memory(
+                                                snapshot.data!,
+                                                fit: BoxFit.cover,
+                                                width: 100,
+                                                height: 100,
+                                              );
+                                            }
+                                            return const SizedBox.shrink();
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 30),
                           ],
                         ),
                       ),
@@ -228,16 +351,29 @@ class _MainPageState extends State<MainPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
+      floatingActionButton: GestureDetector(
+        onTap: () async {
           final result = await Navigator.pushNamed(context, '/upload');
           if (result != null && result is Map<String, dynamic> && mounted) {
             _addNewPost(result);
           }
         },
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        label: const Text('Upload BeReal'),
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            color: Colors.transparent,
+          ),
+          child: const Stack(
+            children: [
+              Center(
+                child: Icon(Icons.add, color: Colors.white, size: 30),
+              ),
+            ],
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
