@@ -142,11 +142,16 @@ class _MainPageState extends State<MainPage> {
       'Maggus',
       'Emanuel',
     ];
+    final ids = [
+      '675955c6b174d862f28b31d0',
+      '6758c6475d9247cd8202c99f',
+      '67595d32b174d862f28b31ee',
+    ];
 
     setState(() {
       for (int i = 0; i < rearImages.length; i++) {
         posts.add({
-          'id': DateTime.now().toString(),
+          'id': ids[i],
           'user': usernames[i],
           'frontImage': frontImages[i],
           'rearImage': rearImages[i],
