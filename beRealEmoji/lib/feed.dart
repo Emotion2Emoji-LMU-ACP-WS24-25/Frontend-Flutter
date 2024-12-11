@@ -15,6 +15,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final List<Map<String, dynamic>> posts = [];
+  bool _isButtonDisabled = false;
 
   // Funktion zum Laden der Bilddateien aus den Assets
   Future<Uint8List> _loadAssetImage(String path) async {
@@ -71,7 +72,7 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     // Standard-Posts beim Start hinzufügen
-    _loadDefaultPosts();
+    //_loadDefaultPosts();
   }
 
   // Zufällige Benutzernamen erstellen
@@ -127,6 +128,8 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<void> _loadDefaultPosts() async {
+    _isButtonDisabled = true;
+
     final rearImages = [
       await _loadAssetImage('b0.jpg'),
       await _loadAssetImage('b1.jpg'),
@@ -202,6 +205,13 @@ class _MainPageState extends State<MainPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.sync),
+            color: Colors.white,
+            onPressed: _isButtonDisabled ? null : _loadDefaultPosts,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 0.0),
