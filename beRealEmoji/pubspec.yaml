@@ -9,10 +9,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  camera: ^0.11.0+2
   http: ^1.2.2
   image_picker: ^1.1.2
   flutter_dotenv: ^5.2.1
+  logger: ^1.0.0
+  share_plus: ^10.1.4
+  path_provider: ^2.1.5
+  http_parser: ^4.1.2
+  camera: ^0.11.1
 
 dev_dependencies:
   flutter_test:
@@ -35,4 +39,6 @@ flutter:
     - assets/BeReal_logo.png
     - assets/lmu_logo.png
     - assets/maxmuster.jpg
+    - assets/smiley.png
+    - assets/emoji.jpg
     - .env

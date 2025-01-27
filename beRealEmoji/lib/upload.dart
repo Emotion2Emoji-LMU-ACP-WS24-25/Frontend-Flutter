@@ -1,12 +1,12 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
-//neue importe für anbindung an express server
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
-import 'package:mime/mime.dart';
+import 'package:camera/camera.dart';
 
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
@@ -16,14 +16,82 @@ class UploadPage extends StatefulWidget {
 }
 
 class _UploadPageState extends State<UploadPage> {
+  CameraController? _cameraController;
+  List<CameraDescription>? _cameras;
   Uint8List? _frontImageBytes;
   Uint8List? _rearImageBytes;
+  bool _isFrontCamera = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera([int cameraIndex = 0]) async {
+    _cameras = await availableCameras();
+    _cameraController = CameraController(
+      _cameras![cameraIndex], // Use the specified camera
+      ResolutionPreset.high,
+    );
+    await _cameraController!.initialize();
+    setState(() {});
+  }
+
+  Future<void> _captureImage() async {
+    if (_cameraController != null && _cameraController!.value.isInitialized) {
+      final XFile image = await _cameraController!.takePicture();
+      final imageBytes = await image.readAsBytes();
+      setState(() {
+        if (_isFrontCamera) {
+          _frontImageBytes = imageBytes;
+        } else {
+          _rearImageBytes = imageBytes;
+        }
+      });
+    }
+  }
+
+  Future<void> _captureBothImages() async {
+    // Capture front camera image
+    await _initializeCamera(1); // Assuming front camera is at index 1
+    await _captureImage();
+
+    _isFrontCamera = false;
+
+    // Add a short delay
+    await Future.delayed(const Duration(milliseconds: 2000));
+
+    // Capture rear camera image
+    await _initializeCamera(0); // Assuming rear camera is at index 0
+    await _captureImage();
+
+    print("Hallo");
+    _postBeReal();
+  }
+
+  void _rotateCamera() {
+    if (_cameras != null && _cameras!.length > 1) {
+      final currentIndex = _cameras!.indexOf(_cameraController!.description);
+      final nextIndex = (currentIndex + 1) % _cameras!.length;
+      _initializeCamera(nextIndex);
+      setState(() {
+        _isFrontCamera = !_isFrontCamera;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
+  }
 
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickFrontImage() async {
-    final XFile? pickedFile =
-        await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.camera, preferredCameraDevice: CameraDevice.front);
     if (pickedFile != null) {
       final frontImageBytes = await pickedFile.readAsBytes();
       setState(() {
@@ -33,8 +101,8 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   Future<void> _pickRearImage() async {
-    final XFile? pickedFile =
-        await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.camera, preferredCameraDevice: CameraDevice.rear);
     if (pickedFile != null) {
       final rearImageBytes = await pickedFile.readAsBytes();
       setState(() {
@@ -44,6 +112,9 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   void _postBeReal() async {
+    print("Upload");
+    print(_frontImageBytes);
+    print(_rearImageBytes);
     if (_frontImageBytes != null && _rearImageBytes != null) {
       var job_id = await _uploadImages();
       final newPost = {
@@ -132,88 +203,31 @@ class _UploadPageState extends State<UploadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text(
-          'Upload BeReal',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
+        title: const Text('Upload Page'),
       ),
-      backgroundColor: Colors.black,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 24),
-              Stack(
-                alignment: Alignment.topLeft,
-                children: [
-                  if (_rearImageBytes != null)
-                    Image.memory(
-                      _rearImageBytes!,
-                      height: 350,
-                      width: 250,
-                      fit: BoxFit.cover,
-                    )
-                  else
-                    Container(
-                      height: 350,
-                      width: 250,
-                      color: Colors.grey[800],
-                      child: const Center(
-                        child: Text(
-                          'Placeholder',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    ),
-                  if (_frontImageBytes != null)
-                    Positioned(
-                      top: 16,
-                      left: 16,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.memory(
-                            _frontImageBytes!,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _postBeReal,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 32.0),
+      body: Stack(
+        children: [
+          CameraPreview(_cameraController!),
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FloatingActionButton(
+                  onPressed: _captureBothImages,
+                  child: const Icon(Icons.camera),
                 ),
-                child: const Text('Post BeReal'),
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: _pickFrontImage,
-                child: const Text('Upload Front Image'),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _pickRearImage,
-                child: const Text('Upload Rear Image'),
-              ),
-            ],
+                const SizedBox(width: 20),
+                FloatingActionButton(
+                  onPressed: _rotateCamera,
+                  child: const Icon(Icons.cameraswitch),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -1,10 +1,11 @@
-import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Für rootBundle
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+import 'post.dart';
+import 'dart:io';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -14,8 +15,59 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final List<Map<String, dynamic>> posts = [];
-  bool _isButtonDisabled = false;
+  final List<Post> posts = [];
+  bool _showCircles = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Standard-Posts beim Start hinzufügen
+    _loadDefaultPosts();
+  }
+
+  Future<void> _loadDefaultPosts() async {
+    final rearImages = [
+      await _loadAssetImage('b0.jpg'),
+      await _loadAssetImage('b1.jpg'),
+      await _loadAssetImage('b2.jpg'),
+    ];
+    final frontImages = [
+      await _loadAssetImage('f0.jpg'),
+      await _loadAssetImage('f1.jpg'),
+      await _loadAssetImage('f2.jpg'),
+    ];
+    final userImages = [
+      await _loadAssetImage('maxmuster.jpg'),
+      await _loadAssetImage('maxmuster.jpg'),
+      await _loadAssetImage('maxmuster.jpg'),
+    ];
+    final usernames = [
+      'BayernFan1900',
+      'Maggus',
+      'Emanuel',
+    ];
+    final ids = [
+      '675955c6b174d862f28b31d0',
+      '6758c6475d9247cd8202c99f',
+      '67595d32b174d862f28b31ee',
+    ];
+
+    List<Post> newPosts = [];
+    for (int i = 0; i < ids.length; i++) {
+      newPosts.add(Post(
+        id: ids[i],
+        user: usernames[i],
+        userImage: userImages[i],
+        frontImage: frontImages[i],
+        rearImage: rearImages[i],
+        time: _generateRandomTime(),
+      ));
+    }
+
+    setState(() {
+      posts.addAll(newPosts);
+    });
+  }
 
   // Funktion zum Laden der Bilddateien aus den Assets
   Future<Uint8List> _loadAssetImage(String path) async {
@@ -23,74 +75,23 @@ class _MainPageState extends State<MainPage> {
     return byteData.buffer.asUint8List();
   }
 
-  Future<Uint8List?> _fetchImage(String postId, String user) async {
-    final url = Uri.parse("${dotenv.get('BACKEND_URL', fallback: "")}/download")
-        .replace(
-      queryParameters: {
-        'id': postId,
-        'user': user,
-      },
-    );
+  Future<void> _shareEmoji(Uint8List emoji) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/emoji.png').create();
+      await file.writeAsBytes(emoji);
 
-    int attempts = 0;
-    const maxAttempts = 8;
-    const delayDuration = Duration(seconds: 15);
-
-    while (attempts < maxAttempts) {
-      try {
-        final response = await http.get(url);
-
-        if (response.statusCode == 422) {
-          return await _getFallbackImage();
-        }
-
-        if (response.statusCode == 200) {
-          return response.bodyBytes;
-        } else {
-          print('Attempt ${attempts + 1}: ${response.statusCode}');
-        }
-      } catch (e) {
-        print('Network error on attempt ${attempts + 1}: $e');
-        return await _getFallbackImage();
-      }
-
-      attempts++;
-      if (attempts < maxAttempts) {
-        await Future.delayed(delayDuration);
-      }
+      final xFile = XFile(file.path);
+      Share.shareXFiles([xFile]);
+    } catch (e) {
+      //Error handling
     }
-    print(
-        'Failed to download image after $attempts attempts. Returning fallback image.');
-    return await _getFallbackImage();
   }
 
-  Future<Uint8List> _getFallbackImage() async {
-    return (await rootBundle.load('assets/maxmuster.jpg')).buffer.asUint8List();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // Standard-Posts beim Start hinzufügen
-    //_loadDefaultPosts();
-  }
-
-  // Zufällige Benutzernamen erstellen
-  String _generateRandomUsername() {
-    const names = [
-      'Alice',
-      'Bob',
-      'Charlie',
-      'David',
-      'Eve',
-      'Frank',
-      'Grace',
-      'Hannah',
-      'Ivy',
-      'Jack'
-    ];
-    final random = Random();
-    return names[random.nextInt(names.length)];
+  void _toggleCircles() {
+    setState(() {
+      _showCircles = !_showCircles;
+    });
   }
 
   // Zufällige Zeitstempel generieren
@@ -127,72 +128,19 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  Future<void> _loadDefaultPosts() async {
-    _isButtonDisabled = true;
+  // void _addPost(String id, String user, Uint8List userImage,
+  //     Uint8List frontImage, Uint8List rearImage, String time) {
+  //   posts.add(Post(
+  //     id: id,
+  //     user: user,
+  //     userImage: userImage,
+  //     frontImage: frontImage,
+  //     rearImage: rearImage,
+  //     time: time,
+  //   ));
+  // }
 
-    final rearImages = [
-      await _loadAssetImage('b0.jpg'),
-      await _loadAssetImage('b1.jpg'),
-      await _loadAssetImage('b2.jpg'),
-    ];
-    final frontImages = [
-      await _loadAssetImage('f0.jpg'),
-      await _loadAssetImage('f1.jpg'),
-      await _loadAssetImage('f2.jpg'),
-    ];
-    final usernames = [
-      'BayernFan1900',
-      'Maggus',
-      'Emanuel',
-    ];
-    final ids = [
-      '675955c6b174d862f28b31d0',
-      '6758c6475d9247cd8202c99f',
-      '67595d32b174d862f28b31ee',
-    ];
-
-    setState(() {
-      for (int i = 0; i < rearImages.length; i++) {
-        posts.add({
-          'id': ids[i],
-          'user': usernames[i],
-          'frontImage': frontImages[i],
-          'rearImage': rearImages[i],
-          'time': _generateRandomTime(),
-        });
-      }
-    });
-  }
-
-  void _addNewPost(Map<String, dynamic> newPost) async {
-    final postTime = DateTime.now();
-    setState(() {
-      posts.insert(0, {
-        'id': newPost['id'],
-        'user': newPost['user'],
-        'frontImage': newPost['frontImage'],
-        'rearImage': newPost['rearImage'],
-        'time': _getTimeAgo(postTime),
-      });
-    });
-  }
-
-  void _showFullScreenImage(BuildContext context, Uint8List imageData) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: GestureDetector(
-          onTap: () => Navigator.of(context).pop(), // Close dialog on tap
-          child: Image.memory(
-            imageData,
-            fit: BoxFit.contain,
-            width: 400,
-            height: 400,
-          ),
-        ),
-      ),
-    );
-  }
+  // TODO Flip Card to show emoji (with animation)
 
   @override
   Widget build(BuildContext context) {
@@ -209,7 +157,21 @@ class _MainPageState extends State<MainPage> {
           IconButton(
             icon: const Icon(Icons.sync),
             color: Colors.white,
-            onPressed: _isButtonDisabled ? null : _loadDefaultPosts,
+            onPressed: () {
+              for (var post in posts) {
+                post.fetchEmoji().then((_) {
+                  setState(() {});
+                });
+              }
+            },
+          ),
+          IconButton(
+            icon: const CircleAvatar(
+              backgroundImage: AssetImage('assets/maxmuster.jpg'),
+            ),
+            onPressed: () {
+              // Add your onPressed code here!
+            },
           ),
         ],
       ),
@@ -231,7 +193,8 @@ class _MainPageState extends State<MainPage> {
                           borderRadius: BorderRadius.circular(12.0),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
+                              color:
+                                  Colors.black.withAlpha((0.3 * 255).toInt()),
                               blurRadius: 8.0,
                               offset: const Offset(0, 4),
                             ),
@@ -241,14 +204,13 @@ class _MainPageState extends State<MainPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Padding(
-                              // Header bar with user info
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
                                 children: [
-                                  const CircleAvatar(
+                                  CircleAvatar(
                                     radius: 20.0,
-                                    backgroundImage: AssetImage(
-                                        'assets/maxmuster.jpg'), // User avatar from assets
+                                    backgroundImage:
+                                        MemoryImage(post.userImage),
                                   ),
                                   const SizedBox(width: 12.0),
                                   Column(
@@ -256,14 +218,14 @@ class _MainPageState extends State<MainPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        post['user'],
+                                        post.user,
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       Text(
-                                        post['time'],
+                                        post.time,
                                         style: TextStyle(
                                           color: Colors.grey[400],
                                           fontSize: 12.0,
@@ -277,6 +239,14 @@ class _MainPageState extends State<MainPage> {
                                         color: Colors.white),
                                     onPressed: () {},
                                   ),
+                                  if (post.emoji != null)
+                                    IconButton(
+                                      icon: const Icon(Icons.ios_share,
+                                          color: Colors.white),
+                                      onPressed: () {
+                                        _shareEmoji(post.emoji!);
+                                      },
+                                    ),
                                 ],
                               ),
                             ),
@@ -287,81 +257,128 @@ class _MainPageState extends State<MainPage> {
                                   borderRadius: const BorderRadius.all(
                                       Radius.circular(12.0)),
                                   child: Image.memory(
-                                    post['rearImage'],
+                                    post.rearImage,
                                     fit: BoxFit.cover,
                                     width: 400,
                                     height: 533,
                                   ),
                                 ),
-                                if (post['frontImage'] != null)
+                                Positioned(
+                                  top: 16,
+                                  left: 16,
+                                  child: Container(
+                                    width: 100,
+                                    height: 130,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: Colors.black, width: 2),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.memory(
+                                        post.frontImage,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (post.emoji != null)
                                   Positioned(
                                     top: 16,
-                                    left: 16,
-                                    child: Container(
-                                      width: 100,
-                                      height: 130,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: Colors.black, width: 2),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.memory(
-                                          post['frontImage'],
-                                          fit: BoxFit.cover,
+                                    right: 16,
+                                    child: GestureDetector(
+                                      child: Container(
+                                        width: 100,
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.black, width: 2),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Image.memory(post.emoji!,
+                                              fit: BoxFit.cover),
                                         ),
                                       ),
                                     ),
                                   ),
                                 Positioned(
-                                  top: 16,
-                                  right: 16,
-                                  child: GestureDetector(
-                                    onTap: () async {
-// Fetch the full-size image data
-                                      final fullImage = await _fetchImage(
-                                          post['id'], post['user']);
-                                      if (fullImage != null) {
-                                        _showFullScreenImage(
-                                            context, fullImage);
-                                      }
+                                  bottom: 80,
+                                  right: 0,
+                                  child: TextButton(
+                                    onPressed: () {
+                                      _toggleCircles();
                                     },
-                                    child: Container(
-                                      width: 100,
-                                      height: 100,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: Colors.black, width: 2),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: FutureBuilder<Uint8List?>(
-                                          future: _fetchImage(
-                                              post['id'], post['user']),
-                                          builder: (context, snapshot) {
-                                            if (snapshot.connectionState ==
-                                                    ConnectionState.waiting ||
-                                                snapshot.data == null) {
-                                              return const Center(
-                                                  child:
-                                                      CircularProgressIndicator());
-                                            } else if (snapshot.hasData) {
-                                              return Image.memory(
-                                                snapshot.data!,
-                                                fit: BoxFit.cover,
-                                                width: 100,
-                                                height: 100,
-                                              );
-                                            }
-                                            return const SizedBox.shrink();
-                                          },
-                                        ),
-                                      ),
+                                    child: const Text(
+                                      '😀',
+                                      style: TextStyle(fontSize: 40),
                                     ),
                                   ),
                                 ),
+                                if (_showCircles)
+                                  Positioned(
+                                    bottom: 16,
+                                    left: 0,
+                                    right: 0,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: List.generate(5, (index) {
+                                        final emojis = [
+                                          '😍',
+                                          '😡',
+                                          '😲',
+                                          '🤢',
+                                          '😢'
+                                        ];
+                                        final images = [
+                                          'assets/emoji.jpg',
+                                          'assets/emoji.jpg',
+                                          'assets/emoji.jpg',
+                                          'assets/emoji.jpg',
+                                          'assets/emoji.jpg'
+                                        ];
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Stack(
+                                            clipBehavior: Clip.none,
+                                            children: [
+                                              Container(
+                                                width: 60,
+                                                height: 60,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                      color: Colors.black,
+                                                      width: 2),
+                                                ),
+                                                child: ClipOval(
+                                                  child: Image.asset(
+                                                    images[index],
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ),
+                                              Positioned(
+                                                bottom: -4,
+                                                right: -4,
+                                                child: Text(
+                                                  emojis[index],
+                                                  style: const TextStyle(
+                                                      fontSize: 20),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                    ),
+                                  ),
                               ],
                             ),
                             const SizedBox(height: 30),
@@ -379,9 +396,7 @@ class _MainPageState extends State<MainPage> {
       floatingActionButton: GestureDetector(
         onTap: () async {
           final result = await Navigator.pushNamed(context, '/upload');
-          if (result != null && result is Map<String, dynamic> && mounted) {
-            _addNewPost(result);
-          }
+          if (result != null && result is Map<String, dynamic> && mounted) {}
         },
         child: Container(
           width: 60,
