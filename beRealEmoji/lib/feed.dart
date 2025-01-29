@@ -348,7 +348,7 @@ void _toggleReactionBar(int index) {
           child: const Stack(
             children: [
               Center(
-                child: Icon(Icons.add, color: Colors.white, size: 30),
+                child: Icon(Icons.camera_alt, color: Colors.white, size: 40),
               ),
             ],
           ),
