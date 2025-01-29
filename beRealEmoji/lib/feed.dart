@@ -5,6 +5,7 @@ import 'package:flutter/services.dart'; // Für rootBundle
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'Post.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -15,72 +16,70 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final List<Post> posts = [];
-    int? selectedPostIndex;
-
+  int? selectedPostIndex;
+  bool floatingBarVisible = false; // Variable für die Floating Bar Sichtbarkeit
 
   @override
   void initState() {
     super.initState();
-    // Standard-Posts beim Start hinzufügen
     _loadDefaultPosts();
   }
 
   Future<void> _loadDefaultPosts() async {
-  final rearImages = [
-    await _loadAssetImage('b0.jpg'),
-    await _loadAssetImage('b1.jpg'),
-    await _loadAssetImage('b2.jpg'),
-  ];
-  final frontImages = [
-    await _loadAssetImage('f0.jpg'),
-    await _loadAssetImage('f1.jpg'),
-    await _loadAssetImage('f2.jpg'),
-  ];
-  final userImages = [
-    await _loadAssetImage('maxmuster.jpg'),
-    await _loadAssetImage('maxmuster.jpg'),
-    await _loadAssetImage('maxmuster.jpg'),
-  ];
-  final emojis = [
-    await _loadAssetImage('f0_emoji.jpg'),
-    await _loadAssetImage('f1_emoji.jpg'),
-    await _loadAssetImage('f2_emoji.jpg'),
-  ];
-  final usernames = [
-    'BayernFan1900',
-    'Maggus',
-    'Emanuel',
-  ];
-  final ids = [
-    '675955c6b174d862f28b31d0',
-    '6758c6475d9247cd8202c99f',
-    '67595d32b174d862f28b31ee',
-  ];
-  final captions = [
-    'Das Bayern-Spiel heute hat mich so traurig gemacht.',
-    'Ich bin glücklich, heute gab es lecker Pizza.',
-    'Mein Icehockey-Team war heute so schlecht, ich bin sauer!!',
-  ];
+    final rearImages = [
+      await _loadAssetImage('b0.jpg'),
+      await _loadAssetImage('b1.jpg'),
+      await _loadAssetImage('b2.jpg'),
+    ];
+    final frontImages = [
+      await _loadAssetImage('f0.jpg'),
+      await _loadAssetImage('f1.jpg'),
+      await _loadAssetImage('f2.jpg'),
+    ];
+    final userImages = [
+      await _loadAssetImage('maxmuster.jpg'),
+      await _loadAssetImage('maxmuster.jpg'),
+      await _loadAssetImage('maxmuster.jpg'),
+    ];
+    final emojis = [
+      await _loadAssetImage('f0_emoji.jpg'),
+      await _loadAssetImage('f1_emoji.jpg'),
+      await _loadAssetImage('f2_emoji.jpg'),
+    ];
+    final usernames = [
+      'BayernFan1900',
+      'Maggus',
+      'Emanuel',
+    ];
+    final ids = [
+      '675955c6b174d862f28b31d0',
+      '6758c6475d9247cd8202c99f',
+      '67595d32b174d862f28b31ee',
+    ];
+    final captions = [
+      '"Das Bayern-Spiel heute hat mich so traurig gemacht."',
+      '"Heute gab es lecker Pizza, ich bin glücklich."',
+      '"Ich bin sauer. Mein Icehockey-Team war heute so schlecht."',
+    ];
 
-  List<Post> newPosts = [];
-  for (int i = 0; i < ids.length; i++) {
-    newPosts.add(Post(
-      id: ids[i],
-      user: usernames[i],
-      userImage: userImages[i],
-      frontImage: frontImages[i],
-      rearImage: rearImages[i],
-      emoji: emojis[i],
-      time: _generateRandomTime(),
-      caption: captions[i], // Hier wird die Caption hinzugefügt
-    ));
+    List<Post> newPosts = [];
+    for (int i = 0; i < ids.length; i++) {
+      newPosts.add(Post(
+        id: ids[i],
+        user: usernames[i],
+        userImage: userImages[i],
+        frontImage: frontImages[i],
+        rearImage: rearImages[i],
+        emoji: emojis[i],
+        time: _generateRandomTime(),
+        caption: captions[i], 
+      ));
+    }
+
+    setState(() {
+      posts.addAll(newPosts);
+    });
   }
-
-  setState(() {
-    posts.addAll(newPosts);
-  });
-}
-
 
   Future<Uint8List> _loadAssetImage(String path) async {
     final byteData = await rootBundle.load('assets/$path');
@@ -114,7 +113,6 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  // Zufällige Zeitstempel generieren
   String _generateRandomTime() {
     final random = Random();
     final now = DateTime.now();
@@ -148,10 +146,30 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-void _toggleReactionBar(int index) {
+  void _toggleReactionBar(int index) {
     setState(() {
       selectedPostIndex = selectedPostIndex == index ? null : index;
+      floatingBarVisible = !floatingBarVisible; // Toggle Floating Bar
     });
+  }
+
+  Widget _buildFloatingBar() {
+    return AnimatedOpacity(
+      opacity: floatingBarVisible ? 1.0 : 0.0,
+      duration: Duration(milliseconds: 300),
+      child: Positioned(
+        bottom: 20,
+        left: 50,
+        right: 50,
+        child: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -166,7 +184,6 @@ void _toggleReactionBar(int index) {
         ),
         centerTitle: true,
         actions: <Widget>[
-         
           IconButton(
             icon: const CircleAvatar(
               backgroundImage: AssetImage('assets/maxmuster.jpg'),
@@ -178,7 +195,7 @@ void _toggleReactionBar(int index) {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 0.0),
+        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 0.0),
         child: Column(
           children: [
             Expanded(
@@ -187,7 +204,7 @@ void _toggleReactionBar(int index) {
                 itemBuilder: (context, index) {
                   final post = posts[index];
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                    padding: const EdgeInsets.symmetric(vertical: 24.0),
                     child: GestureDetector(
                       onTap: () => _flipImages(index),
                       child: Center(
@@ -250,72 +267,98 @@ void _toggleReactionBar(int index) {
                                 ),
                               ),
                               Stack(
-                                alignment: Alignment.topLeft,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.all(Radius.circular(12.0)),
-                                    child: Image.memory(
-                                      post.rearImage,
-                                      fit: BoxFit.cover,
-                                      width: 400,
-                                      height: 533,
-                                    ),
+                              alignment: Alignment.topLeft,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+                                  child: Image.memory(
+                                    post.rearImage,
+                                    fit: BoxFit.cover,
+                                    width: 400,
+                                    height: 533,
                                   ),
-                                  if (!post.isFlipped)
-                                    Positioned(
-                                      top: 16,
-                                      left: 16,
-                                      child: Container(
-                                        width: 100,
-                                        height: 130,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.black, width: 2),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: Image.memory(
-                                            post.frontImage,
-                                            fit: BoxFit.cover,
-                                          ),
+                                ),
+                                if (!post.isFlipped)
+                                  Positioned(
+                                    top: 16,
+                                    left: 16,
+                                    child: Container(
+                                      width: 100,
+                                      height: 130,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.black, width: 2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.memory(
+                                          post.frontImage,
+                                          fit: BoxFit.cover,
                                         ),
                                       ),
                                     ),
+                                  ),
+                                if (selectedPostIndex == index) 
                                   Positioned(
-                                    bottom: 10,
-                                    right: 10,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                      IconButton(
-                                          icon: Image.asset(
-                                            'assets/ReactSmiley.png',
-                                            width: 30, 
-                                            height: 30,),
-                                          onPressed: ()  =>
-                                              _toggleReactionBar(index),
-                                        ),
-                                         IconButton(
-                                          icon: Image.asset(
-                                            'assets/Comment.png',
-                                            width: 30, 
-                                            height: 30,),
-                                          onPressed: () {
-                                          },
-                                        ),
-                                      ],
+                                    bottom: 60, 
+                                    left: 20,
+                                    child: Container(
+                                      width: 360, 
+                                      height: 35,
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.6), 
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: List.generate(5, (index) {
+                                          return Container(
+                                            width: 50,
+                                            height: 50,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[600],
+                                              shape: BoxShape.circle,
+                                            ),
+                                          );
+                                        }),
+                                      ),
                                     ),
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
+                                Positioned(
+                                  bottom: 10,
+                                  right: 10,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      IconButton(
+                                        icon: Image.asset(
+                                          'assets/ReactSmiley.png',
+                                          width: 30, 
+                                          height: 30,
+                                        ),
+                                        onPressed: () => _toggleReactionBar(index),
+                                      ),
+                                      IconButton(
+                                        icon: Image.asset(
+                                          'assets/Comment.png',
+                                          width: 30, 
+                                          height: 30,
+                                        ),
+                                        onPressed: () {},
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                              const SizedBox(height: 6),
                               Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text(
-                                post.caption, 
+                                padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                                child: Text(
+                                  post.caption,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 14.0,
+                                    fontSize: 16.0,
                                     fontStyle: FontStyle.italic,
                                   ),
                                 ),
@@ -329,6 +372,7 @@ void _toggleReactionBar(int index) {
                 },
               ),
             ),
+            _buildFloatingBar(), // Floating Bar hinzufügen
           ],
         ),
       ),
@@ -370,7 +414,7 @@ class Post {
   bool isFlipped;
   final Uint8List defaultFrontImage;
   final Uint8List defaultRearImage;
-  final String caption; 
+  final String caption;
 
   Post({
     required this.id,
@@ -381,6 +425,6 @@ class Post {
     this.emoji,
     required this.time,
     this.isFlipped = false,
-    required this.caption, 
+    required this.caption,
   }) : defaultFrontImage = frontImage, defaultRearImage = rearImage;
 }
