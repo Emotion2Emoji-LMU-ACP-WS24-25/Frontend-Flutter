@@ -279,53 +279,138 @@ void _selectEmoji(int postIndex, String emojiPath) {
                                   ],
                                 ),
                               ),
-                              Stack(
-                                alignment: Alignment.topLeft,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(12.0),
-                                      topRight: Radius.circular(12.0),
-                                    ),
-                                    child: Image.memory(
-                                      post.rearImage,
-                                      fit: BoxFit.cover,
-                                      width: 400,
-                                      height: 533,
+                             Stack(
+                              alignment: Alignment.topLeft,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(12.0),
+                                    topRight: Radius.circular(12.0),
+                                  ),
+                                  child: Image.memory(
+                                    post.rearImage,
+                                    fit: BoxFit.cover,
+                                    width: 400,
+                                    height: 533,
+                                  ),
+                                ),
+                                if (post.isFlipped) 
+                                  Positioned(
+                                    top: 16,
+                                    left: 16,
+                                    child: Container(
+                                      width: 100,
+                                      height: 130,
+                                      child: const ClipRRect(
+                                      ),
                                     ),
                                   ),
-                                  if (post.isFlipped) 
-                                    Positioned(
-                                      top: 16,
-                                      left: 16,
-                                      child: Container(
-                                        width: 100,
-                                        height: 130,
+                                if (!post.isFlipped)
+                                  Positioned(
+                                    top: 16,
+                                    left: 16,
+                                    child: Container(
+                                      width: 100,
+                                      height: 130,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.black, width: 2),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                    ),
-                                  if (!post.isFlipped) 
-                                    Positioned(
-                                      top: 16,
-                                      left: 16,
-                                      child: Container(
-                                        width: 100,
-                                        height: 130,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.black, width: 2),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: Image.memory(
-                                            post.frontImage,
-                                            fit: BoxFit.cover,
-                                          ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.memory(
+                                          post.frontImage,
+                                          fit: BoxFit.cover,
                                         ),
                                       ),
                                     ),
-                                ],
-                              ),
-
+                                  ),
+                                if (selectedPostIndex == index)
+                                  Positioned(
+                                    bottom: 15,
+                                    left: 80,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                      width: 280,
+                                      height: 40, 
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.6),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: List.generate(5, (index) {
+                                          List<String> imagePaths = [
+                                            'assets/happy.png',
+                                            'assets/surprised.png',
+                                            'assets/neutral.png',
+                                            'assets/sad.png',
+                                            'assets/angry.png',
+                                          ];
+                                          return GestureDetector(
+                                            onTap: () async {
+                                              _selectEmoji(selectedPostIndex!, imagePaths[index]);
+                                            },
+                                            child: Container(
+                                              width: 30,
+                                              height: 30,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                image: DecorationImage(
+                                                  image: AssetImage(imagePaths[index]),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                      ),
+                                    ),
+                                  ),
+                                Positioned(
+                                  bottom: 10,
+                                  right: 10,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      IconButton(
+                                        icon: Image.asset(
+                                          'assets/Comment.png',
+                                          width: 30, 
+                                          height: 30,
+                                        ),
+                                        onPressed: () {
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Image.asset(
+                                          'assets/ReactSmiley.png',
+                                          width: 30, 
+                                          height: 30,
+                                        ),
+                                        onPressed: () => _toggleReactionBar(index),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (post.selectedEmoji != null)
+                                  Positioned(
+                                    bottom: 10,
+                                    left: 10,
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                          image: AssetImage(post.selectedEmoji!), 
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 0.0),
                               child: Container(
