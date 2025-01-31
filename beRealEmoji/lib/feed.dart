@@ -17,7 +17,7 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final List<Post> posts = [];
   int? selectedPostIndex;
-  bool floatingBarVisible = false; // Variable für die Floating Bar Sichtbarkeit
+  bool floatingBarVisible = false; 
 
   @override
   void initState() {
@@ -149,9 +149,22 @@ class _MainPageState extends State<MainPage> {
   void _toggleReactionBar(int index) {
     setState(() {
       selectedPostIndex = selectedPostIndex == index ? null : index;
-      floatingBarVisible = !floatingBarVisible; // Toggle Floating Bar
+      floatingBarVisible = !floatingBarVisible; 
     });
   }
+
+void _selectEmoji(int postIndex, String emojiPath) {
+  setState(() {
+    if (postIndex >= 0 && postIndex < posts.length) {
+      posts[postIndex].selectedEmoji = emojiPath;
+      floatingBarVisible = false;
+      selectedPostIndex = null;
+    }
+  });
+}
+
+
+
 
   Widget _buildFloatingBar() {
     return AnimatedOpacity(
@@ -162,7 +175,7 @@ class _MainPageState extends State<MainPage> {
         left: 50,
         right: 50,
         child: Container(
-          height: 40,
+          height: 80,
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(0.7),
             borderRadius: BorderRadius.circular(8),
@@ -270,7 +283,10 @@ class _MainPageState extends State<MainPage> {
                               alignment: Alignment.topLeft,
                               children: [
                                 ClipRRect(
-                                  borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+                                  borderRadius:  const BorderRadius.only(
+                                    topLeft: Radius.circular(12.0), 
+                                    topRight: Radius.circular(12.0),
+                                  ),
                                   child: Image.memory(
                                     post.rearImage,
                                     fit: BoxFit.cover,
@@ -278,7 +294,16 @@ class _MainPageState extends State<MainPage> {
                                     height: 533,
                                   ),
                                 ),
-                                if (!post.isFlipped)
+                               if (post.selectedEmoji != null)
+                                Positioned(
+                                  bottom: 10,
+                                  left: 10,
+                                  child: Image.asset(
+                                    post.selectedEmoji!, 
+                                    width: 40,
+                                    height: 40,
+                                  ),
+                                ),
                                   Positioned(
                                     top: 16,
                                     left: 16,
@@ -287,10 +312,13 @@ class _MainPageState extends State<MainPage> {
                                       height: 130,
                                       decoration: BoxDecoration(
                                         border: Border.all(color: Colors.black, width: 2),
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(8.0), 
+                                    topRight: Radius.circular(8.0),
+                                  ),
                                       ),
                                       child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius:  BorderRadius.circular(8),
                                         child: Image.memory(
                                           post.frontImage,
                                           fit: BoxFit.cover,
@@ -300,27 +328,43 @@ class _MainPageState extends State<MainPage> {
                                   ),
                                 if (selectedPostIndex == index) 
                                   Positioned(
-                                    bottom: 60, 
+                                    bottom: 60,
                                     left: 20,
                                     child: Container(
-                                      width: 360, 
-                                      height: 35,
+                                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                      width: 360,
+                                      height: 40, 
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.6), 
-                                        borderRadius: BorderRadius.circular(12),
+                                        color: Colors.black.withOpacity(0.6),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: List.generate(5, (index) {
-                                          return Container(
-                                            width: 50,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[600],
-                                              shape: BoxShape.circle,
+                                      children: List.generate(5, (index) {
+                                      List<String> imagePaths = [
+                                        'assets/happy.png',
+                                        'assets/surprised.png',
+                                        'assets/neutral.png',
+                                        'assets/sad.png',
+                                        'assets/angry.png',
+                                      ];
+                                      return GestureDetector(
+                                        onTap: () async {
+                                          _selectEmoji(selectedPostIndex!, imagePaths[index]);
+                                        },
+                                        child: Container(
+                                          width: 30,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            image: DecorationImage(
+                                              image: AssetImage(imagePaths[index]), 
+                                              fit: BoxFit.cover,
                                             ),
-                                          );
-                                        }),
+                                          ),
+                                        ),
+                                      );
+                                    }),
                                       ),
                                     ),
                                   ),
@@ -351,18 +395,28 @@ class _MainPageState extends State<MainPage> {
                                 ),
                               ],
                             ),
-                              const SizedBox(height: 6),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                              child: Container(
+                                width: 400, 
+                                decoration: const BoxDecoration(
+                                  color: Colors.white, 
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(12.0), 
+                                    bottomRight: Radius.circular(12.0),
+                                  ),
+                                ),
+                                padding: const EdgeInsets.all(8.0), 
                                 child: Text(
                                   post.caption,
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.black, 
                                     fontSize: 16.0,
                                     fontStyle: FontStyle.italic,
                                   ),
                                 ),
                               ),
+                            ),
                             ],
                           ),
                         ),
@@ -372,7 +426,7 @@ class _MainPageState extends State<MainPage> {
                 },
               ),
             ),
-            _buildFloatingBar(), // Floating Bar hinzufügen
+            _buildFloatingBar(), 
           ],
         ),
       ),
@@ -410,6 +464,7 @@ class Post {
   Uint8List frontImage;
   Uint8List rearImage;
   Uint8List? emoji;
+  String? selectedEmoji; 
   final String time;
   bool isFlipped;
   final Uint8List defaultFrontImage;
@@ -423,8 +478,28 @@ class Post {
     required this.frontImage,
     required this.rearImage,
     this.emoji,
+    this.selectedEmoji, 
     required this.time,
     this.isFlipped = false,
     required this.caption,
   }) : defaultFrontImage = frontImage, defaultRearImage = rearImage;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

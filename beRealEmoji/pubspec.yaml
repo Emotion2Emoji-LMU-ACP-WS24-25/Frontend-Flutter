@@ -41,5 +41,10 @@ flutter:
     - assets/f2_emoji.jpg
     - assets/ReactSmiley.png
     - assets/Comment.png
+    - assets/sad.png
+    - assets/angry.png
+    - assets/neutral.png
+    - assets/surprised.png
+    - assets/happy.png
     - .env
     
