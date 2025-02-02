@@ -2,10 +2,13 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Für rootBundle
+import 'package:provider/provider.dart';
+import 'package:login/profile.dart';
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'Post.dart';
+import 'ProfileModel.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -202,7 +205,10 @@ void _selectEmoji(int postIndex, String emojiPath) {
               backgroundImage: AssetImage('assets/maxmuster.jpg'),
             ),
             onPressed: () {
-              // Add your onPressed code here!
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfilePage()),
+              );
             },
           ),
         ],
