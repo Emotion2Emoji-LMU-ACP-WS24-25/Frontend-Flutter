@@ -17,6 +17,7 @@ dependencies:
   path_provider: ^2.1.5
   http_parser: ^4.1.2
   camera: ^0.11.1
+  avatar_glow: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -46,5 +47,6 @@ flutter:
     - assets/neutral.png
     - assets/surprised.png
     - assets/happy.png
+    - assets/default_user.jpeg
     - .env
     
