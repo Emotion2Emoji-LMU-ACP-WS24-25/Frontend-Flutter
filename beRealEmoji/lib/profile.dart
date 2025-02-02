@@ -42,63 +42,18 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage('assets/maxmuster.jpg'),
-            ),
-            const SizedBox(height: 20),
-            
-            Container(
-              padding: EdgeInsets.all(10),
-              width: 400,
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(10),
+        child: Center(  
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,  
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const CircleAvatar(
+                radius: 50,
+                backgroundImage: AssetImage('assets/maxmuster.jpg'),
               ),
-              child: Column(
-                children: [
-                  const Text("Name", style: TextStyle(color: Colors.grey)),
-                  Text(
-                    username,
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 10),
-            
-            Container(
-              padding: EdgeInsets.all(10),
-              width: 400,
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text("Bio", style: TextStyle(color: Colors.grey)),
-                  Text(
-                    bio,
-                    style: const TextStyle(color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 10),
-            
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  isExpanded = !isExpanded;
-                });
-              },
-              child: Container(
+              const SizedBox(height: 20),
+              
+              Container(
                 padding: EdgeInsets.all(10),
                 width: 400,
                 decoration: BoxDecoration(
@@ -107,55 +62,104 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 child: Column(
                   children: [
+                    const Text("Name", style: TextStyle(color: Colors.grey)),
                     Text(
-                      isExpanded ? "Click on an emoji to change it" : "Reactions",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(reactions.length, (index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 9.0),
-                          child: Column(
-                            children: [
-                              GestureDetector(
-                                onTap: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => UploadPage()),
-                                  );
-                                  if (result != null) {
-                                    Provider.of<ProfileModel>(context, listen: false)
-                                        .setCustomReaction(index, result);
-                                  }
-                                },
-                                child: Consumer<ProfileModel>(
-                                  builder: (context, profileModel, child) {
-                                    String emojiPath = profileModel.customReactions.containsKey(index)
-                                        ? profileModel.customReactions[index]!
-                                        : reactions[index];
-                                    return Image.asset(emojiPath, width: 40, height: 40);
-                                  },
-                                ),
-                              ),
-                              if (isExpanded)
-                                Text(
-                                  reactionLabels[index],
-                                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                                ),
-                            ],
-                          ),
-                        );
-                      }),
+                      username,
+                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              
+              const SizedBox(height: 10),
+              
+              Container(
+                padding: EdgeInsets.all(10),
+                width: 400,
+                decoration: BoxDecoration(
+                  color: Colors.grey[800],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    const Text("Bio", style: TextStyle(color: Colors.grey)),
+                    Text(
+                      bio,
+                      style: const TextStyle(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 10),
+              
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isExpanded = !isExpanded;
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  width: 400,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        isExpanded ? "Click on an emoji to change it" : "Reactions",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(reactions.length, (index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 9.0),
+                            child: Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => UploadPage()),
+                                    );
+                                    if (result != null) {
+                                      Provider.of<ProfileModel>(context, listen: false)
+                                          .setCustomReaction(index, result);
+                                    }
+                                  },
+                                  child: Consumer<ProfileModel>(
+                                    builder: (context, profileModel, child) {
+                                      String emojiPath = profileModel.customReactions.containsKey(index)
+                                          ? profileModel.customReactions[index]!
+                                          : reactions[index];
+                                      return Image.asset(emojiPath, width: 40, height: 40);
+                                    },
+                                  ),
+                                ),
+                                if (isExpanded)
+                                  Text(
+                                    reactionLabels[index],
+                                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+
     );
   }
 }
