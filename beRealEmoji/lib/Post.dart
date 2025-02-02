@@ -1,71 +1,43 @@
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class Post {
-  String _id;
-  String _user;
-  String _time;
-  Uint8List _userImage;
-  Uint8List _frontImage;
-  Uint8List _rearImage;
-  Uint8List? _emoji; // Nullable field for e, required Uint8List userImagemoji
+  final String id;
+  final String user;
+  final Uint8List userImage;
+  Uint8List frontImage;
+  Uint8List rearImage;
+  Uint8List? emoji;
+  String? selectedEmoji; 
+  final String time;
+  bool isFlipped;
+  final Uint8List defaultFrontImage;
+  final Uint8List defaultRearImage;
+  final String caption;
 
   Post({
-    required String id,
-    required String user,
-    required Uint8List userImage,
-    required Uint8List frontImage,
-    required Uint8List rearImage,
-    required String time,
-    Uint8List? emoji,
-  })  : _id = id,
-        _user = user,
-        _userImage = userImage,
-        _frontImage = frontImage,
-        _rearImage = rearImage,
-        _time = time,
-        _emoji = emoji;
+    required this.id,
+    required this.user,
+    required this.userImage,
+    required this.frontImage,
+    required this.rearImage,
+    this.emoji,
+    this.selectedEmoji,
+    required this.time,
+    this.isFlipped = false,
+    required this.caption,
+  }) : defaultFrontImage = frontImage, defaultRearImage = rearImage;
 
-  // Getters
-  String get id => _id;
-  String get user => _user;
-  String get time => _time;
-  Uint8List get userImage => _userImage;
-  Uint8List get frontImage => _frontImage;
-  Uint8List get rearImage => _rearImage;
-  Uint8List? get emoji => _emoji;
-
-  // Setters
-  set id(String id) {
-    _id = id;
+  // Methode, um ein Asset-Bild als Uint8List zu laden
+  Future<Uint8List> loadAssetImage(String path) async {
+    final byteData = await rootBundle.load('assets/$path');
+    return byteData.buffer.asUint8List();
   }
 
-  set user(String user) {
-    _user = user;
-  }
-
-  set time(String time) {
-    _time = time;
-  }
-
-  set userImage(Uint8List userImage) {
-    _userImage = userImage;
-  }
-
-  set frontImage(Uint8List frontImage) {
-    _frontImage = frontImage;
-  }
-
-  set rearImage(Uint8List rearImage) {
-    _rearImage = rearImage;
-  }
-
-  set emoji(Uint8List? emoji) {
-    _emoji = emoji;
-  }
-
-  // Method to fetch emoji from server
+  // Methode, um ein Emoji von einem Backend-Server herunterzuladen
   Future<void> fetchEmoji() async {
     final url = Uri.parse("${dotenv.get('BACKEND_URL', fallback: "")}/download")
         .replace(
@@ -81,10 +53,12 @@ class Post {
       if (response.statusCode == 200) {
         emoji = response.bodyBytes;
       } else {
-        // Handle other status codes if necessary
       }
     } catch (e) {
-      // Handle exceptions if necessary
     }
+  }
+
+  void setSelectedEmoji(String emojiPath) {
+    selectedEmoji = emojiPath;
   }
 }

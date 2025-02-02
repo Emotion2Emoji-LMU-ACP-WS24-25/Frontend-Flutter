@@ -26,10 +26,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/br1.jpg
-    - assets/br2.jpg
-    - assets/br3.jpg
-    - assets/br4.jpg
     - assets/f0.jpg
     - assets/f1.jpg
     - assets/f2.jpg
@@ -40,5 +36,15 @@ flutter:
     - assets/lmu_logo.png
     - assets/maxmuster.jpg
     - assets/smiley.png
-    - assets/emoji.jpg
+    - assets/f0_emoji.jpg
+    - assets/f1_emoji.jpg
+    - assets/f2_emoji.jpg
+    - assets/ReactSmiley.png
+    - assets/Comment.png
+    - assets/sad.png
+    - assets/angry.png
+    - assets/neutral.png
+    - assets/surprised.png
+    - assets/happy.png
     - .env
+    
