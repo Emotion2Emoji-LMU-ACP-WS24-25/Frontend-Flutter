@@ -273,8 +273,10 @@ class _MainPageState extends State<MainPage> {
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 4.0),
-                                        width: 400,
-                                        height: 70,
+                                        width:
+                                            MediaQuery.of(context).size.width -
+                                                20,
+                                        height: 120,
                                         child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceEvenly,
@@ -339,16 +341,16 @@ class _MainPageState extends State<MainPage> {
                                         IconButton(
                                           icon: Image.asset(
                                             'assets/Comment.png',
-                                            width: 30,
-                                            height: 30,
+                                            width: 25,
+                                            height: 25,
                                           ),
                                           onPressed: () {},
                                         ),
                                         IconButton(
                                           icon: Image.asset(
                                             'assets/ReactSmiley.png',
-                                            width: 30,
-                                            height: 30,
+                                            width: 25,
+                                            height: 25,
                                           ),
                                           onPressed: () =>
                                               _toggleReactionBar(index),
@@ -358,11 +360,11 @@ class _MainPageState extends State<MainPage> {
                                   ),
                                   if (post.selectedEmoji != null)
                                     Positioned(
-                                      bottom: 5,
-                                      left: 5,
+                                      bottom: 15,
+                                      left: 15,
                                       child: Container(
-                                        width: 30,
-                                        height: 30,
+                                        width: 40,
+                                        height: 40,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           image: DecorationImage(
@@ -399,6 +401,19 @@ class _MainPageState extends State<MainPage> {
                                       ),
                                     )
                                 ],
+                              ),
+                              SizedBox(
+                                width: 400,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    post.caption,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
