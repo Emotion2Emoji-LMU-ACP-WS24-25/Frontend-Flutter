@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
 import 'package:camera/camera.dart';
+import 'package:login/Post.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
@@ -66,7 +68,6 @@ class _UploadPageState extends State<UploadPage> {
     await _initializeCamera(0); // Assuming rear camera is at index 0
     await _captureImage();
 
-    print("Hallo");
     _postBeReal();
   }
 
@@ -112,17 +113,21 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   void _postBeReal() async {
-    print("Upload");
-    print(_frontImageBytes);
-    print(_rearImageBytes);
+    final ByteData data = await rootBundle.load('assets/default_user.jpeg');
+    final Uint8List userImageBytes = data.buffer.asUint8List();
     if (_frontImageBytes != null && _rearImageBytes != null) {
-      var job_id = await _uploadImages();
-      final newPost = {
-        'frontImage': _frontImageBytes,
-        'rearImage': _rearImageBytes,
-        'user': 'Demo@LMU',
-        'id': job_id
-      };
+      var jobId = await _uploadImages();
+      final newPost = Post(
+        id: jobId!, // Replace with actual jobId if available
+        user: 'Demo@LMU',
+        userImage:
+            userImageBytes, // Replace with actual user image if available
+        frontImage: _frontImageBytes!,
+        rearImage: _rearImageBytes!,
+        time:
+            "${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}",
+        caption: '', // Replace with actual caption if available
+      );
       Navigator.pop(context, newPost);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -63,6 +63,11 @@ class _MainPageState extends State<MainPage> {
       '"Heute gab es lecker Pizza, ich bin glücklich."',
       '"Ich bin sauer. Mein Icehockey-Team war heute so schlecht."',
     ];
+    final times = [
+      '12:04',
+      '13:41',
+      '15:55',
+    ];
 
     List<Post> newPosts = [];
     for (int i = 0; i < ids.length; i++) {
@@ -73,7 +78,7 @@ class _MainPageState extends State<MainPage> {
         frontImage: frontImages[i],
         rearImage: rearImages[i],
         emoji: emojis[i],
-        time: _generateRandomTime(),
+        time: times[i],
         caption: captions[i],
       ));
     }
@@ -97,39 +102,6 @@ class _MainPageState extends State<MainPage> {
       final xFile = XFile(file.path);
       Share.shareXFiles([xFile]);
     } catch (e) {}
-  }
-
-  String _generateRandomTime() {
-    final random = Random();
-    final now = DateTime.now();
-    final randomMinutes = random.nextInt(60); // Zufällige Minuten
-    final randomHours = random.nextInt(24); // Zufällige Stunden
-    final randomDays = random.nextInt(7); // Zufällige Tage
-
-    final randomTime = now.subtract(Duration(
-      days: randomDays,
-      hours: randomHours,
-      minutes: randomMinutes,
-    ));
-
-    return _getTimeAgo(randomTime);
-  }
-
-  String _getTimeAgo(DateTime postTime) {
-    final now = DateTime.now();
-    final difference = now.difference(postTime);
-
-    if (difference.inSeconds < 60) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} min ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else {
-      return '${difference.inDays} days ago';
-    }
   }
 
   void _toggleReactionBar(int index) {
@@ -192,6 +164,7 @@ class _MainPageState extends State<MainPage> {
                 itemCount: posts.length,
                 itemBuilder: (context, index) {
                   final post = posts[index];
+                  posts.sort((a, b) => b.time.compareTo(a.time));
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10.0),
                     child: GestureDetector(
@@ -236,11 +209,16 @@ class _MainPageState extends State<MainPage> {
                                       ],
                                     ),
                                     const Spacer(),
-                                    IconButton(
-                                      icon: const Icon(Icons.more_horiz,
-                                          color: Colors.white),
-                                      onPressed: () {},
-                                    ),
+                                    if (post.emoji == null)
+                                      IconButton(
+                                        icon: const Icon(Icons.refresh_outlined,
+                                            color: Colors.white),
+                                        onPressed: () async {
+                                          final result =
+                                              await post.fetchEmoji();
+                                          print(result);
+                                        },
+                                      ),
                                     if (post.emoji != null)
                                       IconButton(
                                         icon: const Icon(Icons.ios_share,
@@ -436,8 +414,12 @@ class _MainPageState extends State<MainPage> {
       ),
       floatingActionButton: GestureDetector(
         onTap: () async {
-          final result = await Navigator.pushNamed(context, '/upload');
-          if (result != null && result is Map<String, dynamic> && mounted) {}
+          final newPost = await Navigator.pushNamed(context, '/upload');
+          if (newPost != null && newPost is Post) {
+            setState(() {
+              posts.add(newPost);
+            });
+          }
         },
         child: Container(
           width: 50,

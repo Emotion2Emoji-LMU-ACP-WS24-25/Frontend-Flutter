@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; 
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,7 +11,7 @@ class Post {
   Uint8List frontImage;
   Uint8List rearImage;
   Uint8List? emoji;
-  String? selectedEmoji; 
+  String? selectedEmoji;
   final String time;
   bool isFlipped;
   final Uint8List defaultFrontImage;
@@ -29,7 +29,8 @@ class Post {
     required this.time,
     this.isFlipped = false,
     required this.caption,
-  }) : defaultFrontImage = frontImage, defaultRearImage = rearImage;
+  })  : defaultFrontImage = frontImage,
+        defaultRearImage = rearImage;
 
   // Methode, um ein Asset-Bild als Uint8List zu laden
   Future<Uint8List> loadAssetImage(String path) async {
@@ -38,7 +39,7 @@ class Post {
   }
 
   // Methode, um ein Emoji von einem Backend-Server herunterzuladen
-  Future<void> fetchEmoji() async {
+  Future<String> fetchEmoji() async {
     final url = Uri.parse("${dotenv.get('BACKEND_URL', fallback: "")}/download")
         .replace(
       queryParameters: {
@@ -52,9 +53,12 @@ class Post {
 
       if (response.statusCode == 200) {
         emoji = response.bodyBytes;
+        return 'successful';
       } else {
+        return 'Still processing ...';
       }
     } catch (e) {
+      return 'Error occurred while fetching emoji';
     }
   }
 
