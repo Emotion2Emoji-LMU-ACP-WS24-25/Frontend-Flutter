@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Für rootBundle
+import 'package:login/profile.dart';
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -147,10 +148,12 @@ class _MainPageState extends State<MainPage> {
         actions: <Widget>[
           IconButton(
             icon: const CircleAvatar(
-              backgroundImage: AssetImage('assets/default_user.jpeg'),
+              backgroundImage: AssetImage('assets/maxmuster.jpg'),
             ),
             onPressed: () {
-              // Add your onPressed code here!
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return ProfilePage();
+              }));
             },
           ),
         ],

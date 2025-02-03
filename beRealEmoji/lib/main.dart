@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:login/ProfileModel.dart';
+import 'package:login/profile.dart';
+import 'package:provider/provider.dart';
 import 'login.dart';
 import 'feed.dart';
 import 'upload.dart';
@@ -14,15 +17,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const LoginPage(),
-        '/main': (context) => const MainPage(),
-        '/upload': (context) => const UploadPage(),
-        // '/profile': (context) => const ProfilePage(),
-      },
+    return ChangeNotifierProvider(
+      create: (context) => ProfileModel(), // Provider für das Profilmodell
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const LoginPage(),
+          '/main': (context) => MainPage(),
+          '/upload': (context) => const UploadPage(),
+          '/profile': (context) => ProfilePage(),
+        },
+      ),
     );
   }
 }
