@@ -1,7 +1,9 @@
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'ProfileModel.dart';
-import 'upload.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -11,12 +13,13 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   String username = "Max Musterman";
   String bio = "Ich heiße zwar nicht Bob, aber bin trotzdem ein Baumeister.";
-  List<String> reactions = [
-    'assets/happy.png',
+
+  List<dynamic> reactions = [
+    'assets/happy.png',  
     'assets/surprised.png',
     'assets/neutral.png',
     'assets/sad.png',
-    'assets/angry.png',
+    'assets/angry.png'
   ];
 
   List<String> reactionLabels = [
@@ -26,7 +29,46 @@ class _ProfilePageState extends State<ProfilePage> {
     "Sad",
     "Angry"
   ];
+
   bool isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImages();
+  }
+
+  
+  Future<void> _loadImages() async {
+    final prefs = await SharedPreferences.getInstance();
+    for (int i = 0; i < reactions.length; i++) {
+      String? savedImage = prefs.getString('reaction_$i');
+      if (savedImage != null) {
+        setState(() {
+          reactions[i] = Uint8List.fromList(savedImage.codeUnits); 
+        });
+      }
+    }
+  }
+
+  
+  Future<void> _saveImage(int index, Uint8List byteData) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('reaction_$index', String.fromCharCodes(byteData));  
+  }
+
+  Future<void> _pickImage(int index) async {
+    if (isExpanded) {  
+      final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        final byteData = await pickedFile.readAsBytes();
+        setState(() {
+          reactions[index] = byteData;  
+        });
+        _saveImage(index, byteData);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: Colors.black,
         centerTitle: true,
         title: const Text(
-          'BeReal.',
+          'BeReal. ',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -58,45 +100,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 backgroundImage: AssetImage('assets/maxmuster.jpg'),
               ),
               const SizedBox(height: 20),
-              Container(
-                padding: EdgeInsets.all(10),
-                width: 400,
-                decoration: BoxDecoration(
-                  color: Colors.grey[800],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    const Text("Name", style: TextStyle(color: Colors.grey)),
-                    Text(
-                      username,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
+              _buildInfoContainer("Name", username),
               const SizedBox(height: 10),
-              Container(
-                padding: EdgeInsets.all(10),
-                width: 400,
-                decoration: BoxDecoration(
-                  color: Colors.grey[800],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    const Text("Bio", style: TextStyle(color: Colors.grey)),
-                    Text(
-                      bio,
-                      style: const TextStyle(color: Colors.white),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
+              _buildInfoContainer("Bio", bio),
               const SizedBox(height: 10),
               GestureDetector(
                 onTap: () {
@@ -104,73 +110,83 @@ class _ProfilePageState extends State<ProfilePage> {
                     isExpanded = !isExpanded;
                   });
                 },
-                child: Container(
-                  padding: EdgeInsets.all(10),
-                  width: 400,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[800],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        isExpanded
-                            ? "Click on an emoji to change it"
-                            : "Reactions",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(reactions.length, (index) {
-                          return Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 9.0),
-                            child: Column(
-                              children: [
-                                GestureDetector(
-                                  onTap: () async {
-                                    final result = await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => UploadPage()),
-                                    );
-                                    if (result != null) {
-                                      Provider.of<ProfileModel>(context,
-                                              listen: false)
-                                          .setCustomReaction(index, result);
-                                    }
-                                  },
-                                  child: Consumer<ProfileModel>(
-                                    builder: (context, profileModel, child) {
-                                      String emojiPath = profileModel
-                                              .customReactions
-                                              .containsKey(index)
-                                          ? profileModel.customReactions[index]!
-                                          : reactions[index];
-                                      return Image.asset(emojiPath,
-                                          width: 40, height: 40);
-                                    },
-                                  ),
-                                ),
-                                if (isExpanded)
-                                  Text(
-                                    reactionLabels[index],
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 12),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ),
-                    ],
-                  ),
-                ),
+                child: _buildReactionContainer(),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoContainer(String title, String content) {
+    return Container(
+      padding: EdgeInsets.all(10),
+      width: 400,
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          Text(title, style: TextStyle(color: Colors.grey)),
+          Text(
+            content,
+            style: const TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReactionContainer() {
+    return Container(
+      padding: EdgeInsets.all(10),
+      width: 400,
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          Text(
+            isExpanded ? "Click on an emoji to change it" : "Reactions",
+            style: TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(reactions.length, (index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 9.0),
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () => _pickImage(index),
+                      child: reactions[index] is String
+                          ? Image.asset(
+                              reactions[index],  
+                              width: 40,
+                              height: 40,
+                            )
+                          : Image.memory(
+                              reactions[index],  
+                              width: 40,
+                              height: 40,
+                            ),
+                    ),
+                    if (isExpanded)
+                      Text(
+                        reactionLabels[index],
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
