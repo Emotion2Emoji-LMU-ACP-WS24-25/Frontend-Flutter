@@ -43,7 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
 Future<void> _saveImage(int index, Uint8List byteData) async {
   final prefs = await SharedPreferences.getInstance();
-  String base64Image = base64Encode(byteData); // Konvertiere in Base64
+  String base64Image = base64Encode(byteData); 
   prefs.setString('reaction_$index', base64Image);
 }
 
@@ -67,8 +67,6 @@ Future<void> _loadImages() async {
     setState(() {}); 
   }
 }
-
-
 
 
   Future<void> _pickImage(int index) async {
@@ -181,9 +179,8 @@ Future<void> _loadImages() async {
                     GestureDetector(
                       onTap: () => _pickImage(index),
                       child: reactions[index] is Uint8List
-  ? Image.memory(reactions[index], width: 40, height: 40)
-  : Image.asset(reactions[index], width: 40, height: 40),
-
+                        ? Image.memory(reactions[index], width: 40, height: 40)
+                        : Image.asset(reactions[index], width: 40, height: 40),
                     ),
                     if (isExpanded)
                       Text(
