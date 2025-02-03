@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
+  import 'dart:convert'; 
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -39,36 +40,51 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   
-  Future<void> _loadImages() async {
-    final prefs = await SharedPreferences.getInstance();
-    for (int i = 0; i < reactions.length; i++) {
-      String? savedImage = prefs.getString('reaction_$i');
-      if (savedImage != null) {
-        setState(() {
-          reactions[i] = Uint8List.fromList(savedImage.codeUnits); 
-        });
+
+Future<void> _saveImage(int index, Uint8List byteData) async {
+  final prefs = await SharedPreferences.getInstance();
+  String base64Image = base64Encode(byteData); // Konvertiere in Base64
+  prefs.setString('reaction_$index', base64Image);
+}
+
+Future<void> _loadImages() async {
+  final prefs = await SharedPreferences.getInstance();
+  bool updated = false;
+
+  for (int i = 0; i < reactions.length; i++) {
+    String? savedImage = prefs.getString('reaction_$i');
+    if (savedImage != null && savedImage.isNotEmpty) {
+      try {
+        reactions[i] = base64Decode(savedImage);
+        updated = true;
+      } catch (e) {
+        print("Fehler beim Laden des Bildes $i: $e");
       }
     }
   }
 
-  
-  Future<void> _saveImage(int index, Uint8List byteData) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('reaction_$index', String.fromCharCodes(byteData));  
+  if (updated) {
+    setState(() {}); 
   }
+}
+
+
+
 
   Future<void> _pickImage(int index) async {
-    if (isExpanded) {  
-      final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        final byteData = await pickedFile.readAsBytes();
-        setState(() {
-          reactions[index] = byteData;  
-        });
-        _saveImage(index, byteData);
-      }
-    }
+  final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+  
+  if (pickedFile != null) {
+    final byteData = await pickedFile.readAsBytes();
+
+    setState(() {
+      reactions[index] = byteData; 
+    });
+
+    _saveImage(index, byteData);
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -164,17 +180,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     GestureDetector(
                       onTap: () => _pickImage(index),
-                      child: reactions[index] is String
-                          ? Image.asset(
-                              reactions[index],  
-                              width: 40,
-                              height: 40,
-                            )
-                          : Image.memory(
-                              reactions[index],  
-                              width: 40,
-                              height: 40,
-                            ),
+                      child: reactions[index] is Uint8List
+  ? Image.memory(reactions[index], width: 40, height: 40)
+  : Image.asset(reactions[index], width: 40, height: 40),
+
                     ),
                     if (isExpanded)
                       Text(
