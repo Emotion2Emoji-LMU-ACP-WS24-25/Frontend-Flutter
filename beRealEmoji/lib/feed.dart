@@ -21,6 +21,7 @@ class _MainPageState extends State<MainPage> {
   int? selectedPostIndex;
   bool floatingBarVisible = false;
   bool _showOverlay = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -41,7 +42,7 @@ class _MainPageState extends State<MainPage> {
     ];
     final userImages = [
       await _loadAssetImage('maxmuster.jpg'),
-      await _loadAssetImage('maxmuster.jpg'),
+      await _loadAssetImage('maggus.png'),
       await _loadAssetImage('maxmuster.jpg'),
     ];
     final emojis = [
@@ -214,12 +215,31 @@ class _MainPageState extends State<MainPage> {
                                     const Spacer(),
                                     if (post.emoji == null)
                                       IconButton(
-                                        icon: const Icon(Icons.refresh_outlined,
-                                            color: Colors.white),
+                                        icon: _isLoading
+                                            ? const CircularProgressIndicator(
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(Colors.white),
+                                              )
+                                            : const Icon(Icons.refresh_outlined,
+                                                color: Colors.white),
                                         onPressed: () async {
-                                          final result =
-                                              await post.fetchEmoji();
+                                          setState(() {
+                                            _isLoading = true;
+                                          });
+
+                                          final result = await post.fetchData();
                                           print(result);
+
+                                          if (result ==
+                                              "Still processing ...") {
+                                            await Future.delayed(
+                                                const Duration(seconds: 2));
+                                          }
+
+                                          setState(() {
+                                            _isLoading = false;
+                                          });
                                         },
                                       ),
                                     if (post.emoji != null)
@@ -325,20 +345,16 @@ class _MainPageState extends State<MainPage> {
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         if (post.emoji != null)
-                                          Positioned(
-                                            top: 20,
-                                            right: 20,
-                                            child: AvatarGlow(
-                                              glowRadiusFactor: 0.1,
-                                              curve: Curves.fastOutSlowIn,
-                                              glowColor: Colors.black,
-                                              child: IconButton(
-                                                icon: const Icon(
-                                                    Icons.touch_app_rounded,
-                                                    color: Colors.grey,
-                                                    size: 25),
-                                                onPressed: () {},
-                                              ),
+                                          AvatarGlow(
+                                            glowRadiusFactor: 0.1,
+                                            curve: Curves.fastOutSlowIn,
+                                            glowColor: Colors.black,
+                                            child: IconButton(
+                                              icon: const Icon(
+                                                  Icons.touch_app_rounded,
+                                                  color: Colors.white,
+                                                  size: 25),
+                                              onPressed: () {},
                                             ),
                                           ),
                                         IconButton(
@@ -380,8 +396,9 @@ class _MainPageState extends State<MainPage> {
                                     ),
                                   if (_showOverlay && post.emoji != null)
                                     Positioned(
-                                      top: 20,
-                                      right: 20,
+                                      top: 15,
+                                      right: 15,
+                                      left: 15,
                                       child: Center(
                                         child: Container(
                                           decoration: BoxDecoration(
@@ -398,7 +415,9 @@ class _MainPageState extends State<MainPage> {
                                           ),
                                           child: Image.memory(
                                             post.emoji!,
-                                            width: 140,
+                                            width: MediaQuery.of(context)
+                                                .size
+                                                .width,
                                           ),
                                         ),
                                       ),

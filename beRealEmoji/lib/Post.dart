@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -16,7 +17,7 @@ class Post {
   bool isFlipped;
   final Uint8List defaultFrontImage;
   final Uint8List defaultRearImage;
-  final String caption;
+  String caption;
 
   Post({
     required this.id,
@@ -39,9 +40,17 @@ class Post {
   }
 
   // Methode, um ein Emoji von einem Backend-Server herunterzuladen
-  Future<String> fetchEmoji() async {
+  Future<String> fetchData() async {
     final url = Uri.parse("${dotenv.get('BACKEND_URL', fallback: "")}/download")
         .replace(
+      queryParameters: {
+        'id': id,
+        'user': user,
+      },
+    );
+
+    final url_caption =
+        Uri.parse("${dotenv.get('BACKEND_URL', fallback: "")}/caption").replace(
       queryParameters: {
         'id': id,
         'user': user,
@@ -53,6 +62,10 @@ class Post {
 
       if (response.statusCode == 200) {
         emoji = response.bodyBytes;
+        final responseCaption = await http.get(url_caption);
+        final body = json.decode(responseCaption.body);
+        caption = body['caption'];
+        print(caption);
         return 'successful';
       } else {
         return 'Still processing ...';

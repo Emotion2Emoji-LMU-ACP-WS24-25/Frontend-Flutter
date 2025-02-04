@@ -51,5 +51,6 @@ flutter:
     - assets/surprised.png
     - assets/happy.png
     - assets/default_user.jpeg
+    - assets/maggus.png
     - .env
     

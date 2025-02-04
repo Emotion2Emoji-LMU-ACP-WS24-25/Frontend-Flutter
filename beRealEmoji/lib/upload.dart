@@ -113,7 +113,7 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   void _postBeReal() async {
-    final ByteData data = await rootBundle.load('assets/default_user.jpeg');
+    final ByteData data = await rootBundle.load('assets/maxmuster.jpg');
     final Uint8List userImageBytes = data.buffer.asUint8List();
     if (_frontImageBytes != null && _rearImageBytes != null) {
       var jobId = await _uploadImages();

@@ -1,10 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
-  import 'dart:convert'; 
+import 'dart:convert';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -16,7 +15,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String bio = "Ich heiße zwar nicht Bob, aber bin trotzdem ein Baumeister.";
 
   List<dynamic> reactions = [
-    'assets/happy.png',  
+    'assets/happy.png',
     'assets/surprised.png',
     'assets/neutral.png',
     'assets/sad.png',
@@ -39,50 +38,47 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadImages();
   }
 
-  
+  Future<void> _saveImage(int index, Uint8List byteData) async {
+    final prefs = await SharedPreferences.getInstance();
+    String base64Image = base64Encode(byteData);
+    prefs.setString('reaction_$index', base64Image);
+  }
 
-Future<void> _saveImage(int index, Uint8List byteData) async {
-  final prefs = await SharedPreferences.getInstance();
-  String base64Image = base64Encode(byteData); 
-  prefs.setString('reaction_$index', base64Image);
-}
+  Future<void> _loadImages() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool updated = false;
 
-Future<void> _loadImages() async {
-  final prefs = await SharedPreferences.getInstance();
-  bool updated = false;
-
-  for (int i = 0; i < reactions.length; i++) {
-    String? savedImage = prefs.getString('reaction_$i');
-    if (savedImage != null && savedImage.isNotEmpty) {
-      try {
-        reactions[i] = base64Decode(savedImage);
-        updated = true;
-      } catch (e) {
-        print("Fehler beim Laden des Bildes $i: $e");
+    for (int i = 0; i < reactions.length; i++) {
+      String? savedImage = prefs.getString('reaction_$i');
+      if (savedImage != null && savedImage.isNotEmpty) {
+        try {
+          reactions[i] = base64Decode(savedImage);
+          updated = true;
+        } catch (e) {
+          print("Fehler beim Laden des Bildes $i: $e");
+        }
       }
+    }
+
+    if (updated) {
+      setState(() {});
     }
   }
 
-  if (updated) {
-    setState(() {}); 
-  }
-}
-
-
   Future<void> _pickImage(int index) async {
-  final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-  
-  if (pickedFile != null) {
-    final byteData = await pickedFile.readAsBytes();
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    setState(() {
-      reactions[index] = byteData; 
-    });
+    if (pickedFile != null) {
+      final byteData = await pickedFile.readAsBytes();
 
-    _saveImage(index, byteData);
+      setState(() {
+        reactions[index] = byteData;
+      });
+
+      _saveImage(index, byteData);
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +131,7 @@ Future<void> _loadImages() async {
 
   Widget _buildInfoContainer(String title, String content) {
     return Container(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       width: 400,
       decoration: BoxDecoration(
         color: Colors.grey[800],
@@ -143,7 +139,7 @@ Future<void> _loadImages() async {
       ),
       child: Column(
         children: [
-          Text(title, style: TextStyle(color: Colors.grey)),
+          Text(title, style: const TextStyle(color: Colors.grey)),
           Text(
             content,
             style: const TextStyle(color: Colors.white),
@@ -166,7 +162,7 @@ Future<void> _loadImages() async {
         children: [
           Text(
             isExpanded ? "Click on an emoji to change it" : "Reactions",
-            style: TextStyle(color: Colors.grey),
+            style: const TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 10),
           Row(
@@ -179,13 +175,16 @@ Future<void> _loadImages() async {
                     GestureDetector(
                       onTap: () => _pickImage(index),
                       child: reactions[index] is Uint8List
-                        ? Image.memory(reactions[index], width: 40, height: 40)
-                        : Image.asset(reactions[index], width: 40, height: 40),
+                          ? Image.memory(reactions[index],
+                              width: 40, height: 40)
+                          : Image.asset(reactions[index],
+                              width: 40, height: 40),
                     ),
                     if (isExpanded)
                       Text(
                         reactionLabels[index],
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                   ],
                 ),
